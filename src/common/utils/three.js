@@ -21,29 +21,42 @@ const skyY2 = require('@/static/images/three/Sky_DayY2.png');
  * @param canvas 绘制盒子
  * 当canvas不占满整屏时射线拾取存在偏差，获取点击对象
  */
-// function getCanvasIntersects(event, scene, camera, canvas) {
+function getCanvasIntersects(event, scene, camera, canvas) {
+    event.preventDefault();
+    // 获取元素的大小及其相对于视口的位置
+    let getBoundingClientRect = canvas.getBoundingClientRect();
+    // 屏幕坐标转标准设备坐标
+    let x = ((event.clientX - getBoundingClientRect.left) / canvas.offsetWidth) * 2 - 1; // 标准设备横坐标
+    let y = -((event.clientY - getBoundingClientRect.top) / canvas.offsetHeight) * 2 + 1; // 标准设备纵坐标
 
-//     event.preventDefault();
-//     // 获取元素的大小及其相对于视口的位置
-//     let getBoundingClientRect = canvas.getBoundingClientRect();
-//     // 屏幕坐标转标准设备坐标
-//     let x = ((event.clientX - getBoundingClientRect.left) / canvas.offsetWidth) * 2 - 1; // 标准设备横坐标
-//     let y = -((event.clientY - getBoundingClientRect.top) / canvas.offsetHeight) * 2 + 1; // 标准设备纵坐标
+    let vector = new THREE.Vector3(x, y, 1); // 标准设备坐标
+    // 标准设备坐标转世界坐标
+    let worldVector = vector.unproject(camera);
+    // 射线投射方向单位向量(worldVector坐标减相机位置坐标)
+    let ray = worldVector.sub(camera.position).normalize();
+    // 创建射线投射器对象
+    let rayCaster = new THREE.Raycaster(camera.position, ray);
+    // 返回射线选中的对象 第二个参数如果不填 默认是false
+    let intersects = rayCaster.intersectObjects(scene.children, true);
+    //返回选中的对象数组
+    return intersects;
+}
 
-//     let vector = new THREE.Vector3(x, y, 1); // 标准设备坐标
-//     // 标准设备坐标转世界坐标
-//     let worldVector = vector.unproject(camera);
-//     // 射线投射方向单位向量(worldVector坐标减相机位置坐标)
-//     let ray = worldVector.sub(camera.position).normalize();
-//     // 创建射线投射器对象
-//     let rayCaster = new THREE.Raycaster(camera.position, ray);
-//     // 返回射线选中的对象 第二个参数如果不填 默认是false
-//     let intersects = rayCaster.intersectObjects(scene.children, true);
-//     //返回选中的对象数组
-//     return intersects;
+//- 点击事件 获取某一个盒子canvas中模型对象
+function getBoxClickObjFn(event, scene, camera, canvas) {
+    let intsersects = getCanvasIntersects(event, scene, camera, canvas);
+    if (intsersects.length > 0) {
+        return intsersects;
+    }
+}
 
-// }
-function getCanvasIntersects1(event, scene, camera) {
+// 获取与射线相交的对象数组
+/**
+ * @param { 事件对象 } event
+ * @param { 场景对象 } scene
+ * @param { 镜头对象 } camera
+ */
+function getBodyCanvasIntersects(event, scene, camera) {
     // 声明 raycaster 和 mouse 变量
     let rayCaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
@@ -64,8 +77,8 @@ function getCanvasIntersects1(event, scene, camera) {
     return intersects;
 }
 //- 点击事件 获取某一个盒子canvas中模型对象
-function getBoxClickObjFn(event, scene, camera, canvas) {
-    let intsersects = getCanvasIntersects1(event, scene, camera, canvas);
+function getBodyBoxClickObjFn(event, scene, camera) {
+    let intsersects = getBodyCanvasIntersects(event, scene, camera);
     if (intsersects.length > 0) {
         return intsersects;
     }
