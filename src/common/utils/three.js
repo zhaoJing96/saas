@@ -319,11 +319,13 @@ function threeJs_Composer(width, height, scene, camera, renderer) {
 
 export {
     getBoxClickObjFn,
+    getBodyBoxClickObjFn,
     zoomIn,
     drawPloygonShape,
     drawSkyBox,
     sceneLight,
     setModelOpacity,
-    getCanvasIntersects1,
+    getCanvasIntersects,
+    getBodyCanvasIntersects,
     threeJs_Composer
 };

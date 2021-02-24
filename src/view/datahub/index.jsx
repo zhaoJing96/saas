@@ -1,11 +1,11 @@
+/* eslint-disable no-unused-vars */
 // 主控台
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import THREE from '@/common/three';
-import { getCanvasIntersects } from '@/common/utils/three.js'; // three自定义公共方法
-import { render } from 'less';
+// import { getCanvasIntersects } from '@/common/utils/three.js'; // three自定义公共方法
 // const modelUrl = require('@/static/image/ZN_Mao.glb');
 
-let scene, camera, renderer, controls, composer, outlinePass;
+let scene, camera, renderer, controls, composer;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
 const Datahub = () => {
@@ -26,11 +26,6 @@ const Datahub = () => {
         lightBefore.position.set(-1, -1, -1);
         lightAfter.position.set(1, -1, 1);
         scene.add(lightTop);
-        scene.add(lightBottom);
-        scene.add(lightLeft);
-        scene.add(lightRight);
-        scene.add(lightBefore);
-        scene.add(lightAfter);
         // 光源开启阴影
         lightTop.castShadow = true;
         lightTop.shadow.mapSize = new THREE.Vector2(1024, 1024);
@@ -78,7 +73,7 @@ const Datahub = () => {
         // 首先渲染器开启阴影
         renderer.shadowMap.enabled = true;
         // 挂载到DOM节点
-        datahubBox.appendChild(renderer.domElement);
+        datahubBox.current.appendChild(renderer.domElement);
 
         // 监听鼠标事件
         controls = new THREE.OrbitControls(camera, renderer.domElement);
