@@ -1,0 +1,194 @@
+/*主界面左右布局*/
+html,
+body {
+    min-width: 1366px;
+    margin: 0 auto;
+    height: 100%;
+    line-height: 1.5;
+}
+
+@left-width: 248px;
+
+body>#root {
+    width: 100%;
+    height: 100%;
+
+    >.sass-ui-container {
+        width: 100%;
+        height: 100%;
+
+        >.sass-ui-head {
+            height: 64px;
+            box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        >.sass-ui-content {
+            height: calc(100% - 64px);
+            width: 100%;
+            overflow: hidden;
+
+            &:after,
+            &:before {
+                display: block;
+                height: 0px;
+                clear: both;
+                visibility: hidden;
+                font-size: 0;
+                content: "";
+            }
+
+            >.sass-ui-left,
+            >.sass-ui-right {
+                float: left;
+                height: 100%;
+                overflow: hidden;
+                overflow-y: auto;
+                transition: width 0.1s linear;
+            }
+
+            //左侧
+            >.sass-ui-left {
+                //背景色与antd导航保持一致
+                padding: 16px 0;
+                width: @left-width;
+                background-color: #414A63;
+
+                //折叠按钮
+                .collControl {
+                    display: inline-block;
+                    width: 16px;
+                    height: 32px;
+                    line-height: 32px;
+                    color: #ccc;
+                    border: 1px solid #fff;
+                    border-width: 1px 1px 1px 0;
+                    border-radius: 0 2px 2px 0;
+                    background: #fff;
+                    cursor: pointer;
+                    position: absolute;
+                    z-index: 2;
+                    top: 50%;
+                    transition: left 0.1s linear;
+                }
+
+                .collControl:hover {
+                    color: @primary-color;
+                }
+
+                .collControl.coll-no {
+                    left: @left-width;
+                }
+
+                .collControl.coll-ok {
+                    left: 80px;
+                }
+
+                //重写导航组件样式
+                .ant-menu {
+                    background: transparent !important;
+                }
+
+                .ant-menu-vertical {
+                    border: none !important;
+                }
+
+                .ant-menu-inline-collapsed .ant-menu-item>a,
+                .ant-menu-inline-collapsed .ant-menu-submenu .ant-menu-submenu-title>a {
+                    color: #fff;
+                }
+
+                .ant-menu-inline {
+                    border: none !important;
+
+                    .ant-menu-item,
+                    .ant-menu-submenu-title {
+                        height: 48px !important;
+                        line-height: 48px !important;
+                        margin-top: 0px !important;
+                        margin-bottom: 0px !important;
+                    }
+
+                    .ant-menu-item>a,
+                    .ant-menu-submenu>.ant-menu-submenu-title>a {
+                        color: #ffffff !important;
+                    }
+
+                    .ant-menu-item:hover>a>span,
+                    .ant-menu-item:hover>a {
+                        color: @primary-color  !important;
+                    }
+
+                    .ant-menu-item-active {
+                        background: rgba(238, 195, 103, 0.8);
+                    }
+
+                    .ant-menu-item.ant-menu-item-selected>a {
+                        color: #fff !important;
+                    }
+
+                    .ant-menu-item>a>i,
+                    .ant-menu-item>a>span {
+                        vertical-align: middle !important;
+                    }
+
+                    .ant-menu-submenu-title>a>i,
+                    .ant-menu-submenu-title>a>span {
+                        vertical-align: middle !important;
+                    }
+
+                    //导航a标签
+                    .ant-menu-submenu-title>a {
+                        display: inline-block !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                    }
+
+                    // 箭头样式
+                    .ant-menu-submenu-arrow::after,
+                    .ant-menu-submenu-arrow::before {
+                        background-color: #fff;
+                        background-image: none;
+                    }
+                }
+            }
+
+            >.sass-ui-left.active {
+                width: 80px;
+            }
+
+            //右侧
+            >.sass-ui-right {
+                width: calc(100% - 80px);
+                background: rgba(245, 245, 245, 1);
+                padding: 24px;
+            }
+
+            >.sass-ui-right.active {
+                width: calc(100% - @left-width);
+            }
+        }
+    }
+
+}
+
+//- 文字超出隐藏-单行
+.fonthide {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// 菜单缩放tips样式
+.ant-menu-submenu>.ant-menu {
+    background-color: #414A63;
+    background: #414A63;
+
+    .ant-menu-item>a {
+        color: #fff;
+    }
+
+    .ant-menu-item:hover>a {
+        color: @primary-color;
+    }
+
+}

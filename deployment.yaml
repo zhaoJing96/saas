@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dh4cloud-saas
+  namespace: dhwork-microservice
+  labels:
+    app: dh4cloud-saas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dh4cloud-saas
+  template:
+    metadata:
+      labels:
+        app: dh4cloud-saas
+    spec:
+     containers:
+     - name: dh4cloud-saas
+       image: reg.dhwork.cn/dhza/dhwp-webui:IMAGE_TAG
+       imagePullPolicy: Always
+       ports:
+       - containerPort: 80
+     imagePullSecrets:
+     - name: harbor
+  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dh4cloud-saas
+  namespace: dhwork-microservice
+  labels:
+    app: dh4cloud-saas
+spec:
+  ports:
+  - port: 8013
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: dh4cloud-saas

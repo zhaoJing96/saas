@@ -1,0 +1,119 @@
+image: docker:stable
+stages:
+  - build
+  - deploy
+  - release
+ 
+  
+variables:
+  KUBECONFIG: /etc/deploy/config
+  
+build-job:
+  stage: build
+  script:
+    - rm -rf bundle/
+    - npm install
+    - npm run build
+  cache:
+    untracked: true
+    key: build-achive
+    policy: pull-push
+    paths:
+      - bundle/
+  artifacts:
+    paths:
+      - bundle/
+  tags:
+    - npm
+  only:
+  - develop
+
+
+js_build_job:
+  image: reg.dhwork.cn/dhza/docker-nodejs:v7.0.0
+#  image: docker:stable
+  stage: build
+  tags:
+   - k8s-runner
+  script:
+    - mkdir -p /opt/$CI_PROJECT_NAME
+    - cp -rap  ./* /opt/$CI_PROJECT_NAME
+    - cd /opt/$CI_PROJECT_NAME
+    - npm install
+    - npm run build
+    - export version=$(grep version package.json |awk -F"\"" '{print $4}')
+    - docker login --username=成都大汇智安科技有限公司 --password=1k8y7geNuq3r6e0SOE2 registry.cn-shanghai.aliyuncs.com
+    - docker build -t reg.dhwork.cn/dhza/$CI_PROJECT_NAME:$version .
+    - docker login -u dhza -p Dhza12345678 reg.dhwork.cn
+    - docker push reg.dhwork.cn/dhza/$CI_PROJECT_NAME:$version
+  only:
+    - test
+
+#build_image:
+#  image: dhza/dhza-builder
+#  stage: build
+#  tags:
+#   - dev-k8s
+#  script:
+#    - /bin/bash -v /opt/script/build-nodejs.sh
+#  only:
+#    - develop
+
+deploy_k8s_job:
+  image: reg.dhwork.cn/dhza/kubectl:v1.0
+  stage: deploy
+  allow_failure: true
+  tags:
+    - k8s-runner
+  script:
+    - mkdir -p /etc/deploy
+    - export version=$(grep version package.json |awk -F"\"" '{print $4}')
+    - sed -i -e "s/IMAGE_TAG/$version/g" deployment.yaml
+    - cat deployment.yaml
+    - echo $kube_config |base64 -d > $KUBECONFIG
+    - kubectl delete -f deployment.yaml
+    - kubectl apply -f deployment.yaml
+  only:
+    - test
+
+#deploy_k8s_develop:
+#  image: dhza/dhza-builder
+#  stage: deploy
+#  allow_failure: true
+#  tags:
+#   - dev-k8s
+#  script:
+#    - export APP_VERSION=$(grep version package.json |awk -F"\"" '{print $4}')
+#    - ssh -o StrictHostKeyChecking=no root@192.168.10.31 /bin/bash /opt/app/deploy.sh $CI_PROJECT_NAME $APP_VERSION
+#  only:
+#    - develop
+
+deploy_develop:
+  stage: deploy
+  script:
+    - set
+    - /opt/web/update_$CI_PROJECT_NAME.sh
+  tags:
+    - nginx-develop
+  cache:
+    untracked: true
+    key: build-achive
+    policy: pull
+  only:
+    - develop
+
+release-manul:
+  stage: release
+  when: manual
+  script:
+    - export APP_VERSION=$(grep version package.json |awk -F"\"" '{print $4}')
+    - tar zcf $CI_PROJECT_NAME-$APP_VERSION.tgz bundle
+    - /opt/scripts/upload-web.py $CI_PROJECT_NAME $APP_VERSION
+  tags:
+    - yarn
+  cache:
+    untracked: true
+    key: build-achive
+    policy: pull
+  only:
+    - test
