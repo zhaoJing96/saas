@@ -4,7 +4,10 @@ import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 //全局顶层模块
 import { PageNoFind } from '@/view/exception/404';
 import { Error } from '@/view/exception/error';
+// 引导页
 import Main from '@/view/main/index.jsx';
+// 主控台
+import Datahub from '@/view/datahub';
 import HomeRouterWapper from '@/view/home';
 
 export default function View() {
@@ -12,6 +15,7 @@ export default function View() {
         <Router>
             <Switch>
                 <Route exact path="/" component={Main} />
+                <Route path="/datahub" component={Datahub} />
                 <Route path="/home">
                     <HomeRouterWapper>
                         {/* 首页默认加载成员管理 */}
