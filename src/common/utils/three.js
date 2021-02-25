@@ -16,12 +16,12 @@ const skyY2 = require('@/static/images/three/Sky_DayY2.png');
 // 获取与射线相交的对象数组
 /**
  * @param { 事件对象 } event
- * @param { 场景对象 } scene
+ * @param { 模型对象 } modelData 满足条件的模型对象
  * @param { 镜头对象 } camera
  * @param canvas 绘制盒子
  * 当canvas不占满整屏时射线拾取存在偏差，获取点击对象
  */
-function getCanvasIntersects(event, scene, camera, canvas) {
+function getCanvasIntersects(event, modelData, camera, canvas) {
     event.preventDefault();
     // 获取元素的大小及其相对于视口的位置
     let getBoundingClientRect = canvas.getBoundingClientRect();
@@ -37,26 +37,18 @@ function getCanvasIntersects(event, scene, camera, canvas) {
     // 创建射线投射器对象
     let rayCaster = new THREE.Raycaster(camera.position, ray);
     // 返回射线选中的对象 第二个参数如果不填 默认是false
-    let intersects = rayCaster.intersectObjects(scene.children, true);
+    let intersects = rayCaster.intersectObjects(modelData, true);
     //返回选中的对象数组
     return intersects;
-}
-
-//- 点击事件 获取某一个盒子canvas中模型对象
-function getBoxClickObjFn(event, scene, camera, canvas) {
-    let intsersects = getCanvasIntersects(event, scene, camera, canvas);
-    if (intsersects.length > 0) {
-        return intsersects;
-    }
 }
 
 // 获取与射线相交的对象数组
 /**
  * @param { 事件对象 } event
- * @param { 场景对象 } scene
+ * @param { 模型对象 } modelData 满足条件的模型对象
  * @param { 镜头对象 } camera
  */
-function getBodyCanvasIntersects(event, scene, camera) {
+function getBodyCanvasIntersects(event, modelData, camera) {
     // 声明 raycaster 和 mouse 变量
     let rayCaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
@@ -72,16 +64,9 @@ function getBodyCanvasIntersects(event, scene, camera) {
     //通过鼠标点击的位置(二维坐标)和当前相机的矩阵计算出射线位置
     rayCaster.setFromCamera(mouse, camera);
     // 返回射线选中的对象 第二个参数如果不填 默认是false
-    let intersects = rayCaster.intersectObjects(scene.children, true);
+    let intersects = rayCaster.intersectObjects(modelData, true);
     //返回选中的对象数组
     return intersects;
-}
-//- 点击事件 获取某一个盒子canvas中模型对象
-function getBodyBoxClickObjFn(event, scene, camera) {
-    let intsersects = getBodyCanvasIntersects(event, scene, camera);
-    if (intsersects.length > 0) {
-        return intsersects;
-    }
 }
 //- 拉近视野
 /**
@@ -91,7 +76,6 @@ function getBodyBoxClickObjFn(event, scene, camera) {
  * @param { 拉近位置 } zoom
  */
 function zoomIn(scene, camera, renderer, zoom, time = 1000) {
-    console.log(camera.fov, time);
     if (camera && camera.type === "PerspectiveCamera") {
         camera.fov = zoom;
         camera.updateProjectionMatrix();
@@ -318,8 +302,6 @@ function threeJs_Composer(width, height, scene, camera, renderer) {
 }
 
 export {
-    getBoxClickObjFn,
-    getBodyBoxClickObjFn,
     zoomIn,
     drawPloygonShape,
     drawSkyBox,

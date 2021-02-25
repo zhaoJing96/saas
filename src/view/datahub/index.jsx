@@ -1,15 +1,17 @@
 /* eslint-disable no-unused-vars */
 // 主控台
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import THREE from '@/common/three';
 import { Button } from 'antd';
+import { getCanvasIntersects } from '@/common/utils/three.js';
 import { LeftOutlined } from '@ant-design/icons';
 const modelUrl = require('@/static/images/model/SJKPr.glb');
-let scene, camera, renderer, controls, composer;
+let scene, camera, renderer, controls, composer, outlinePass;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
 
 const Datahub = () => {
+    const [modelData, setModelData] = useState([]); // 模型对象
     const datahubBox = useRef(); // canvas盒子
     // 设置灯光
     function setLight() {
@@ -36,16 +38,41 @@ const Datahub = () => {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
         gltfLoader.load(modelUrl, (gltf) => {
-            console.log(gltf);
+            let modelArr = [...modelData];
             gltf.scene.traverse(obj => {
-                // 模型Mesh开启阴影
                 if (obj.isMesh) {
+                    // 模型Mesh开启阴影
                     obj.castShadow = true;
                     obj.receiveShadow = true;
+                    // 判断是否是标段模型和作业面模型
+                    let filterName = obj.name.substring(obj.name.length - 2);
+                    if (filterName === 'BD' || filterName === 'WR') {
+                        modelArr.push(obj);
+                        setModelData(modelArr);
+                    }
                 }
             });
             scene.add(gltf.scene);
         });
+    }
+
+    // 设置模型高亮选中
+    function setComposer(width, height) {
+        // 设置高亮
+        composer = new THREE.EffectComposer(renderer); // 配置composer
+        let renderPass = new THREE.RenderPass(scene, camera); // 配置通道
+        composer.addPass(renderPass); // 将通道加入composer
+        outlinePass = new THREE.OutlinePass(new THREE.Vector2(width, height), scene, camera);
+        outlinePass.visibleEdgeColor.set('#fff000'); // 选中颜色
+        outlinePass.edgeStrength = 1; // 强度
+        outlinePass.edgeGlow = 2; // 边缘明暗度
+        outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
+        composer.addPass(outlinePass);
+        composer.selectedObjectEffect = function (objs) {
+            let selectedObjects = [];
+            selectedObjects.push(objs);
+            outlinePass.selectedObjects = selectedObjects;
+        };
     }
     // 渲染函数
     function renderFn() {
@@ -59,6 +86,38 @@ const Datahub = () => {
             renderer.render(scene, camera);
         }
     }
+    // 监听窗体变化、自适应窗体事件
+    function onWindowResize() {
+        let width = datahubBox.current.offsetWidth;
+        let height = datahubBox.current.offsetHeight;
+        camera.left = width / - 2;
+        camera.right = width / 2;
+        camera.top = height / 2;
+        camera.bottom = height / -2;
+        // 更新相机投影矩阵，在相机任何参数被改变以后必须被调用
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+    // 监听事件点击事件监听
+    useEffect(() => {
+        if (modelData) {
+            datahubBox.current.addEventListener('mousemove', (event) => {
+                let selectObj = getCanvasIntersects(event, modelData, camera, datahubBox.current);
+                if (selectObj && selectObj.length > 0) {
+                    isComposer = true;
+                    composer.selectedObjectEffect(selectObj[0].object);
+                } else {
+                    isComposer = false;
+                }
+            });
+        }
+    }, [modelData]);
+
+    useEffect(() => {
+        // 监听窗体变化
+        window.addEventListener('resize', onWindowResize, false);
+    }, []);
+
     useEffect(() => {
         // 定义场景
         scene = new THREE.Scene();
@@ -91,6 +150,8 @@ const Datahub = () => {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         // controls.enableDamping = true;//设置为true则启用阻尼(惯性)，默认false
         // controls.dampingFactor = 0.05;//值越小阻尼效果越强
+        // 高亮设置
+        setComposer(width, height);
         // 渲染
         renderFn();
     }, []);
