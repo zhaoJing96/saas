@@ -75,7 +75,7 @@ function getBodyCanvasIntersects(event, modelData, camera) {
  * @param { 渲染 } renderer
  * @param { 拉近位置 } zoom
  */
-function zoomIn(scene, camera, renderer, zoom, time = 1000) {
+function zoomIn(scene, camera, renderer, zoom) {
     if (camera && camera.type === "PerspectiveCamera") {
         camera.fov = zoom;
         camera.updateProjectionMatrix();
