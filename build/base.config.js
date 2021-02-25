@@ -52,7 +52,7 @@ const __proxy = {
 
 module.exports = {
     //项目名称
-    projectName: '智安汇平台',
+    projectName: 'saas',
     //版本
     version: version,
     //入口文件

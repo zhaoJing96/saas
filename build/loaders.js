@@ -89,7 +89,7 @@ const imageLoader = {
     exclude: /node_modules/
 };
 const fileLoader = {
-    test: /\.(eot|svg|ttf|otf|woff|woff2|mp3|mp4)/,
+    test: /\.(eot|svg|ttf|otf|woff|woff2|mp3|mp4|glb)/,
     use: [{ loader: 'file-loader', options: { limit: 128, name: env.dev ? 'static/fonts/[name][hash:8].[ext]' : env.prod && '/static/fonts/[name][hash:8].[ext]' } }],
     include: __include__dirname,
     exclude: /node_modules/
