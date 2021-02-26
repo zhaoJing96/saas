@@ -30,7 +30,8 @@ class DataHubStore {
             workFaceList: [{
                 name: '作业面1',
                 modelName: 'SJK1WR',
-                modelUrl: wModelUrl1
+                modelUrl: wModelUrl1,
+                pModelName: 'SJK1BD'
             }]
         }, {
             name: '标段2',
@@ -40,7 +41,8 @@ class DataHubStore {
             workFaceList: [{
                 name: '作业面2',
                 modelName: 'SJK2WR',
-                modelUrl: wModelUrl2
+                modelUrl: wModelUrl2,
+                pModelName: 'SJK2BD'
             }]
         }, {
             name: '标段3',
@@ -50,7 +52,8 @@ class DataHubStore {
             workFaceList: [{
                 name: '作业面3',
                 modelName: 'SJK3WR',
-                modelUrl: wModelUrl3
+                modelUrl: wModelUrl3,
+                pModelName: 'SJK3BD'
             }]
         }, {
             name: '标段4',
@@ -60,7 +63,8 @@ class DataHubStore {
             workFaceList: [{
                 name: '作业面4',
                 modelName: 'SJK4WR',
-                modelUrl: wModelUrl4
+                modelUrl: wModelUrl4,
+                pModelName: 'SJK4BD'
             }]
         }]
     }; // 模型数据
