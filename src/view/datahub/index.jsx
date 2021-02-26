@@ -48,11 +48,10 @@ const Datahub = () => {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
         gltfLoader.load(model.modelUrl, (gltf) => {
-
+            let modelArr = []; // 临时数组，储存标段作业面，用于高亮
             // 设置当前模型对象
             dataHubStore.setCurrentModel(model);
 
-            let modelArr = []; // 临时数组，储存标段作业面，用于高亮
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
                     // 模型Mesh开启阴影
@@ -92,6 +91,38 @@ const Datahub = () => {
             outlinePass.selectedObjects = selectedObjects;
         };
     }
+    // 设置返回按钮、模型数据列表（是标段还是作业面）
+    function setReturnBtnOrModelList(currentData) {
+        // 返回按钮展示
+        const data = { ...dataHubStore.data };
+        let lists = [];
+        if (currentData.pModelName) {
+            setShowReturnBtn(true);
+            if (currentData.pModelName === data.modelName) {
+                // 标段返回到项目
+                setShowReturnProBtn(true);
+                setShowReturnBDBtn(false);
+                // 作业面列表
+                for (let i = 0; i < data.bidSectionList.length; i++) {
+                    const item = data.bidSectionList[i];
+                    if (currentData.modelName === item.modelName) {
+                        lists = item.workFaceList;
+                    }
+                }
+            } else {
+                // 作业面返回到标段
+                setShowReturnBDBtn(true);
+                setShowReturnProBtn(false);
+                lists = [];
+            }
+        } else {
+            setShowReturnBtn(false);
+            setShowReturnBDBtn(false);
+            setShowReturnProBtn(false);
+            lists = data.bidSectionList;
+        }
+        setModelList(lists);
+    }
 
     // 移除模型, 隐藏前一个模型
     function removeModel() {
@@ -107,28 +138,26 @@ const Datahub = () => {
      * @param {*} value 模型相关数据
      */
     function selectChildModel(value) {
-        console.log(value);
         // 移除上一个模型
         removeModel();
         // 加载当前模型，设置模型初始值
         setGltfModel(value);
+        // 根据选中数据设置模型列表、返回按钮状态
+        setReturnBtnOrModelList(value);
     }
 
     // 返回上一级
     function returnLast(type) {
         const currentModel = { ...dataHubStore.currentModel };
         console.log(currentModel);
-        if (!currentModel.pModelName) {
-            return;
-        }
         scene.traverse(function (child) {
             if (currentModel.pModelName) {
                 // 显示上一级
                 if (child.name === currentModel.pModelName) {
                     child.visible = true;
                 }
-                // 隐藏自身
-                if (child.name === currentModel.modelName) {
+                // 隐藏自身 标段名相等，作业面名等于作业面名 + '_w'
+                if (child.name === currentModel.modelName || child.name.indexOf(currentModel.modelName + '_w') !== -1) {
                     child.visible = false;
                 }
             }
@@ -139,13 +168,24 @@ const Datahub = () => {
             dataHubStore.setCurrentModel(dataHubStore.data);
             // 返回项目模型后重置模型高亮部分数据
             setModelData([...dataHubStore.initModel]);
-            // 返回项目模型后隐藏返回按钮
-            setShowReturnBtn(false);
+            // 返回项目模型后隐藏返回按钮、重置模型数据
+            setReturnBtnOrModelList(dataHubStore.data);
         }
         if (type === 'bidsection') {
+            // for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
+            //     const item = dataHubStore.data.bidSectionList[i];
+            //     console.log(item);
+            //     if (item.modelName === currentModel.pModelName) {
+            //         // 设置当前模型数据为项目模型数据
+            //         dataHubStore.setCurrentModel(item);
+            //         // 返回上级模型后重置模型高亮部分数据
+            //         setModelData([item]);
+            //     }
+            // }
             console.log('返回标段模型');
         }
     }
+
     // 渲染函数
     function renderFn() {
         requestAnimationFrame(renderFn);
@@ -170,37 +210,6 @@ const Datahub = () => {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
-
-    useEffect(() => {
-        // 返回按钮展示
-        const currentData = dataHubStore.currentModel;
-        const data = dataHubStore.data;
-        let lists = [];
-        if (currentData) {
-            if (currentData.pModelName) {
-                setShowReturnBtn(true);
-                if (currentData.pModelName === data.modelName) {
-                    setShowReturnProBtn(true);
-                    setShowReturnBDBtn(false);
-                    // 作业面列表
-                    for (let i = 0; i < data.bidSectionList.length; i++) {
-                        const item = data.bidSectionList[i];
-                        if (currentData.modelName === item.modelName) {
-                            lists = item.workFaceList;
-                        }
-                    }
-                } else {
-                    setShowReturnBDBtn(true);
-                    setShowReturnProBtn(false);
-                    lists = [];
-                }
-            } else {
-                lists = data.bidSectionList;
-            }
-            setModelList(lists);
-        }
-    }, [{ ...dataHubStore.currentModel }, { ...dataHubStore.data }]);
-
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
         if (modelData) {
@@ -224,6 +233,9 @@ const Datahub = () => {
                 if (selectObj && selectObj.length > 0) {
                     // 获取当前点击模型名称
                     let selectModelName = selectObj[0].object.name;
+                    // 获取当前模型的父级，原因：由于数据结构为树形结构，需要查找父级数据遍历得到子级数据
+                    let selectParentName = selectObj[0].object.parent.name; // 父级模型名称
+
                     let data = dataHubStore.data;
                     // 判断是否是标段模型or作业面模型，确认跳转模型
                     let filterName = selectModelName.substring(selectModelName.length - 2);
@@ -239,8 +251,7 @@ const Datahub = () => {
                             }
                         }
                     } else if (filterName === 'WR') {
-                        // 获取当前模型的父级，原因：由于数据结构为树形结构，需要查找父级数据遍历得到子级数据
-                        let selectParentName = selectObj[0].object.parent.name; // 父级模型名称
+
                         // 遍历标段数据
                         for (let i = 0; i < data.bidSectionList.length; i++) {
                             const item = data.bidSectionList[i];
@@ -249,6 +260,7 @@ const Datahub = () => {
                                 // 获取作业面模型数据
                                 for (let j = 0; j < item.workFaceList.length; j++) {
                                     const ele = item.workFaceList[j];
+                                    console.log(ele);
                                     const wmodel = ele.pModelName + '_' + ele.modelName;
                                     if (selectModelName === wmodel) {
                                         // 进入作业面模型
@@ -276,6 +288,8 @@ const Datahub = () => {
         setLight();
         // 加载模型
         setGltfModel(dataHubStore.data, 'init');
+        // 设置模型列表、返回按钮状态
+        setReturnBtnOrModelList(dataHubStore.data);
         // 获取盒子宽高设置相机和渲染区域大小
         let width = datahubBox.current.offsetWidth;
         let height = datahubBox.current.offsetHeight;
@@ -306,6 +320,7 @@ const Datahub = () => {
         // 渲染
         renderFn();
     }, [dataHubStore.data]);
+
     return <div className="ui_datahub_container">
         <div className="ui_model_container" ref={datahubBox}></div>
         <div className="ui_model_list_box">
@@ -321,9 +336,9 @@ const Datahub = () => {
                 </Fragment> : null
             }
             {
-                modelList.length > 0 && modelList.map((item) => {
+                modelList.length > 0 ? modelList.map((item) => {
                     return <div className='model_item' key={item.modelName} onClick={() => selectChildModel(item)}>{item.name}</div>;
-                })
+                }) : <div className='model_item'>暂无数据</div>
             }
         </div>
     </div>;
