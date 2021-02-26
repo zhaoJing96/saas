@@ -162,17 +162,18 @@ const Datahub = () => {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
-    // 返回按钮展示
+
     useEffect(() => {
+        // 返回按钮展示
         const data = { ...dataHubStore.currentModel };
         if (data.pModelName) {
             setShowReturnBtn(true);
         }
     }, [dataHubStore.currentModel]);
-    // 监听事件点击事件监听
+
     useEffect(() => {
+        // 监听鼠标移动事件、设置高亮
         if (modelData) {
-            console.log(modelData);
             datahubBox.current.addEventListener('mousemove', (event) => {
                 let selectObj = getCanvasIntersects(event, modelData, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
@@ -180,6 +181,36 @@ const Datahub = () => {
                     composer.selectedObjectEffect(selectObj[0].object);
                 } else {
                     isComposer = false;
+                }
+            });
+        }
+    }, [modelData]);
+
+    useEffect(() => {
+        // 监听点击事件，模型切换
+        if (modelData) {
+            datahubBox.current.addEventListener('click', (event) => {
+                let selectObj = getCanvasIntersects(event, modelData, camera, datahubBox.current);
+                if (selectObj && selectObj.length > 0) {
+                    // 获取当前点击模型名称
+                    let selectModelName = selectObj[0].object.name;
+                    let data = dataHubStore.data;
+                    // 判断是否是标段模型or作业面模型，确认跳转模型
+                    let filterName = selectModelName.substring(selectModelName.length - 2);
+                    // 标段模型处理
+                    if (filterName === 'BD') {
+                        // 遍历标段列表，查找当前点击标段模型数据
+                        for (let i = 0; i < data.bidSectionList.length; i++) {
+                            const item = data.bidSectionList[i];
+                            let model = item.pModelName + '_' + item.modelName;
+                            // 加载标段模型
+                            if(selectModelName === model){
+                                selectChildModel(item);
+                            }
+                        }
+                    } else if (filterName === 'WR') {
+                        console.log(111111);
+                    }
                 }
             });
         }
