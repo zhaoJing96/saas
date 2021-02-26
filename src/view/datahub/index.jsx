@@ -62,10 +62,10 @@ const Datahub = () => {
                     if (filterName === 'BD' || filterName === 'WR') {
                         modelArr.push(obj);
                         setModelData(modelArr);
-                    }
-                    // 存储初始加载项目模型时可高亮对象
-                    if (init) {
-                        dataHubStore.setInitModel(modelArr);
+                        // 存储初始加载项目模型时可高亮对象
+                        if (init) {
+                            dataHubStore.setInitModel(modelArr);
+                        }
                     }
                 }
             });
@@ -149,7 +149,6 @@ const Datahub = () => {
     // 返回上一级
     function returnLast(type) {
         const currentModel = { ...dataHubStore.currentModel };
-        console.log(currentModel);
         scene.traverse(function (child) {
             if (currentModel.pModelName) {
                 // 显示上一级
@@ -162,6 +161,7 @@ const Datahub = () => {
                 }
             }
         });
+
         // 返回到项目模型时，定义当前模型初始值
         if (type === 'product') {
             // 设置当前模型数据为项目模型数据
@@ -172,17 +172,15 @@ const Datahub = () => {
             setReturnBtnOrModelList(dataHubStore.data);
         }
         if (type === 'bidsection') {
-            // for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
-            //     const item = dataHubStore.data.bidSectionList[i];
-            //     console.log(item);
-            //     if (item.modelName === currentModel.pModelName) {
-            //         // 设置当前模型数据为项目模型数据
-            //         dataHubStore.setCurrentModel(item);
-            //         // 返回上级模型后重置模型高亮部分数据
-            //         setModelData([item]);
-            //     }
-            // }
-            console.log('返回标段模型');
+            for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
+                const item = dataHubStore.data.bidSectionList[i];
+                if (item.modelName === currentModel.pModelName) {
+                    // 设置当前模型数据为项目模型数据
+                    dataHubStore.setCurrentModel(item);
+                    // 返回项目模型后隐藏返回按钮、重置模型数据
+                    setReturnBtnOrModelList(item);
+                }
+            }
         }
     }
 
@@ -260,7 +258,6 @@ const Datahub = () => {
                                 // 获取作业面模型数据
                                 for (let j = 0; j < item.workFaceList.length; j++) {
                                     const ele = item.workFaceList[j];
-                                    console.log(ele);
                                     const wmodel = ele.pModelName + '_' + ele.modelName;
                                     if (selectModelName === wmodel) {
                                         // 进入作业面模型
