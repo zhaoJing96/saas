@@ -16,6 +16,7 @@ const Datahub = () => {
     const [showReturnProBtn, setShowReturnProBtn] = useState(false); // 返回项目按钮
     const [showReturnBDBtn, setShowReturnBDBtn] = useState(false); // 返回标段按钮
     const [modelList, setModelList] = useState([]); // 模型数据列表
+    const [composerData, setComposerData] = useState([]); // 模型高亮数据
     const datahubBox = useRef(); // canvas盒子
     // 设置灯光
     function setLight() {
@@ -40,13 +41,12 @@ const Datahub = () => {
     /**
      * 加载项目or标段模型
      * @param {*} model 模型数据
-     * @param {*} init  是否是初始项目模型
      */
-    function setGltfModel(model, init) {
+    function setGltfModel(model) {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
         gltfLoader.load(model.modelUrl, (gltf) => {
-            let modelArr = []; // 临时数组，储存标段作业面，用于高亮
+            let modelArr = [...dataHubStore.composerModel]; // 临时数组，储存标段作业面，用于高亮
             // 设置当前模型对象
             dataHubStore.setCurrentModel(model);
 
@@ -59,11 +59,9 @@ const Datahub = () => {
                     let filterName = obj.name.substring(obj.name.length - 2);
                     if (filterName === 'BD' || filterName === 'WR') {
                         modelArr.push(obj);
-                        dataHubStore.setComposerModel([...dataHubStore.composerModel, ...modelArr]);
-                        // 存储初始加载项目模型时可高亮对象
-                        if (init) {
-                            dataHubStore.setInitModel(modelArr);
-                        }
+                        dataHubStore.setComposerModel([...new Set(modelArr)]);
+                        // 设置高亮
+                        setComposerData([...new Set(modelArr)]);
                     }
                 }
             });
@@ -78,9 +76,9 @@ const Datahub = () => {
         let renderPass = new THREE.RenderPass(scene, camera); // 配置通道
         composer.addPass(renderPass); // 将通道加入composer
         outlinePass = new THREE.OutlinePass(new THREE.Vector2(width, height), scene, camera);
-        outlinePass.visibleEdgeColor.set('#fff000'); // 选中颜色
-        outlinePass.edgeStrength = 1; // 强度
-        outlinePass.edgeGlow = 2; // 边缘明暗度
+        outlinePass.visibleEdgeColor.set('#00ff00'); // 选中颜色
+        outlinePass.edgeStrength = 1.3; // 强度
+        outlinePass.edgeGlow = 1.5; // 边缘明暗度
         outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
         composer.addPass(outlinePass);
         composer.selectedObjectEffect = function (objs) {
@@ -125,11 +123,8 @@ const Datahub = () => {
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
         const currentModel = { ...dataHubStore.currentModel };
-        scene.traverse(function (child) {
-            if (child.name === currentModel.modelName) {
-                child.visible = false;
-            }
-        });
+        let model = scene.getObjectByName(currentModel.modelName);
+        model.visible = false;
     }
     /**
      * 选择标段模型or作业面模型
@@ -161,6 +156,7 @@ const Datahub = () => {
     // 返回上一级
     function returnLast(type) {
         const currentModel = { ...dataHubStore.currentModel };
+        let composerModel = dataHubStore.composerModel;
         scene.traverse(function (child) {
             if (currentModel.pModelName) {
                 // 显示上一级
@@ -177,10 +173,17 @@ const Datahub = () => {
         if (type === 'product') {
             // 设置当前模型数据为项目模型数据
             dataHubStore.setCurrentModel(dataHubStore.data);
-            // 返回项目模型后重置模型高亮部分数据
-            // setModelData([...dataHubStore.initModel]);
             // 返回项目模型后隐藏返回按钮、重置模型数据
             setReturnBtnOrModelList(dataHubStore.data);
+            // 设置高亮数据
+            let composerArr = [];
+            for (let i = 0; i < composerModel.length; i++) {
+                const item = composerModel[i];
+                if (item.name.indexOf('WR') === -1) {
+                    composerArr.push(item);
+                }
+            }
+            setComposerData(composerArr);
         }
         if (type === 'bidsection') {
             for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
@@ -192,6 +195,15 @@ const Datahub = () => {
                     setReturnBtnOrModelList(item);
                 }
             }
+            // 设置高亮数据
+            let composerArr = [];
+            for (let j = 0; j < composerModel.length; j++) {
+                const ele = composerModel[j];
+                if (ele.name.indexOf('WR') !== -1) {
+                    composerArr.push(ele);
+                }
+            }
+            setComposerData(composerArr);
         }
     }
 
@@ -221,9 +233,9 @@ const Datahub = () => {
     }
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
-        if (dataHubStore.composerModel) {
+        if (composerData) {
             datahubBox.current.addEventListener('mousemove', (event) => {
-                let selectObj = getCanvasIntersects(event, dataHubStore.composerModel, camera, datahubBox.current);
+                let selectObj = getCanvasIntersects(event, composerData, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
                     isComposer = true;
                     composer.selectedObjectEffect(selectObj[0].object);
@@ -232,13 +244,13 @@ const Datahub = () => {
                 }
             });
         }
-    }, [dataHubStore.composerModel]);
+    }, [composerData]);
 
     useEffect(() => {
         // 监听点击事件，模型切换
-        if (dataHubStore.composerModel) {
+        if (composerData) {
             datahubBox.current.addEventListener('click', (event) => {
-                let selectObj = getCanvasIntersects(event, dataHubStore.composerModel, camera, datahubBox.current);
+                let selectObj = getCanvasIntersects(event, composerData, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
                     // 获取当前点击模型名称
                     let selectModelName = selectObj[0].object.name;
@@ -260,7 +272,6 @@ const Datahub = () => {
                             }
                         }
                     } else if (filterName === 'WR') {
-
                         // 遍历标段数据
                         for (let i = 0; i < data.bidSectionList.length; i++) {
                             const item = data.bidSectionList[i];
@@ -282,7 +293,7 @@ const Datahub = () => {
                 }
             });
         }
-    }, [dataHubStore.composerModel]);
+    }, [composerData]);
 
     useEffect(() => {
         // 监听窗体变化
@@ -295,7 +306,7 @@ const Datahub = () => {
         // 灯光
         setLight();
         // 加载模型
-        setGltfModel(dataHubStore.data, 'init');
+        setGltfModel(dataHubStore.data);
         // 设置模型列表、返回按钮状态
         setReturnBtnOrModelList(dataHubStore.data);
         // 获取盒子宽高设置相机和渲染区域大小
