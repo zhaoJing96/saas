@@ -7,13 +7,11 @@ import { getCanvasIntersects } from '@/common/utils/three.js';
 import { LeftOutlined } from '@ant-design/icons';
 import dataHubStore from '@/common/store/datahub';
 import { Fragment } from 'react';
-// const modelUrl = require('@/static/images/model/SJKPr.glb');
 let scene, camera, renderer, controls, composer, outlinePass;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
 
 const Datahub = () => {
-    const [modelData, setModelData] = useState([]); // 模型对象,处理筛选标段、作业面
     const [showReturnBtn, setShowReturnBtn] = useState(false); // 是否展示返回按钮
     const [showReturnProBtn, setShowReturnProBtn] = useState(false); // 返回项目按钮
     const [showReturnBDBtn, setShowReturnBDBtn] = useState(false); // 返回标段按钮
@@ -61,7 +59,7 @@ const Datahub = () => {
                     let filterName = obj.name.substring(obj.name.length - 2);
                     if (filterName === 'BD' || filterName === 'WR') {
                         modelArr.push(obj);
-                        setModelData(modelArr);
+                        dataHubStore.setComposerModel([...dataHubStore.composerModel, ...modelArr]);
                         // 存储初始加载项目模型时可高亮对象
                         if (init) {
                             dataHubStore.setInitModel(modelArr);
@@ -124,8 +122,8 @@ const Datahub = () => {
         setModelList(lists);
     }
 
-    // 移除模型, 隐藏前一个模型
-    function removeModel() {
+    // 隐藏模型, 隐藏前一个模型
+    function visibleModel() {
         const currentModel = { ...dataHubStore.currentModel };
         scene.traverse(function (child) {
             if (child.name === currentModel.modelName) {
@@ -138,10 +136,24 @@ const Datahub = () => {
      * @param {*} value 模型相关数据
      */
     function selectChildModel(value) {
-        // 移除上一个模型
-        removeModel();
-        // 加载当前模型，设置模型初始值
-        setGltfModel(value);
+        // 隐藏上一个模型
+        visibleModel();
+        // 判断模型是否已经加载过
+        let alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
+        if (alreadyLoadedModel.indexOf(value.modelName) !== -1) {
+            scene.traverse(function (child) {
+                if (child.name === value.modelName || child.name.indexOf(value.modelName + '_w') !== -1) {
+                    // 设置当前模型对象
+                    dataHubStore.setCurrentModel(value);
+                    child.visible = true;
+                }
+            });
+        } else {
+            // 未加载过，加载当前模型，设置模型初始值,存储模型
+            alreadyLoadedModel.push(value.modelName);
+            dataHubStore.setAlreadyLoadedModel(alreadyLoadedModel);
+            setGltfModel(value);
+        }
         // 根据选中数据设置模型列表、返回按钮状态
         setReturnBtnOrModelList(value);
     }
@@ -161,13 +173,12 @@ const Datahub = () => {
                 }
             }
         });
-
         // 返回到项目模型时，定义当前模型初始值
         if (type === 'product') {
             // 设置当前模型数据为项目模型数据
             dataHubStore.setCurrentModel(dataHubStore.data);
             // 返回项目模型后重置模型高亮部分数据
-            setModelData([...dataHubStore.initModel]);
+            // setModelData([...dataHubStore.initModel]);
             // 返回项目模型后隐藏返回按钮、重置模型数据
             setReturnBtnOrModelList(dataHubStore.data);
         }
@@ -210,9 +221,9 @@ const Datahub = () => {
     }
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
-        if (modelData) {
+        if (dataHubStore.composerModel) {
             datahubBox.current.addEventListener('mousemove', (event) => {
-                let selectObj = getCanvasIntersects(event, modelData, camera, datahubBox.current);
+                let selectObj = getCanvasIntersects(event, dataHubStore.composerModel, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
                     isComposer = true;
                     composer.selectedObjectEffect(selectObj[0].object);
@@ -221,13 +232,13 @@ const Datahub = () => {
                 }
             });
         }
-    }, [modelData]);
+    }, [dataHubStore.composerModel]);
 
     useEffect(() => {
         // 监听点击事件，模型切换
-        if (modelData) {
+        if (dataHubStore.composerModel) {
             datahubBox.current.addEventListener('click', (event) => {
-                let selectObj = getCanvasIntersects(event, modelData, camera, datahubBox.current);
+                let selectObj = getCanvasIntersects(event, dataHubStore.composerModel, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
                     // 获取当前点击模型名称
                     let selectModelName = selectObj[0].object.name;
@@ -271,7 +282,7 @@ const Datahub = () => {
                 }
             });
         }
-    }, [modelData]);
+    }, [dataHubStore.composerModel]);
 
     useEffect(() => {
         // 监听窗体变化
