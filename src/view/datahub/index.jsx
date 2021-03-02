@@ -6,15 +6,12 @@ import { Button } from 'antd';
 import { getCanvasIntersects } from '@/common/utils/three.js';
 import { LeftOutlined } from '@ant-design/icons';
 import dataHubStore from '@/common/store/datahub';
-import { Fragment } from 'react';
 let scene, camera, renderer, controls, composer, outlinePass;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
 
 const Datahub = () => {
     const [showReturnBtn, setShowReturnBtn] = useState(false); // 是否展示返回按钮
-    const [showReturnProBtn, setShowReturnProBtn] = useState(false); // 返回项目按钮
-    const [showReturnBDBtn, setShowReturnBDBtn] = useState(false); // 返回标段按钮
     const [modelList, setModelList] = useState([]); // 模型数据列表
     const [composerData, setComposerData] = useState([]); // 模型高亮数据
     const datahubBox = useRef(); // canvas盒子
@@ -71,28 +68,8 @@ const Datahub = () => {
                 modelArr.push(gltf.scene);
                 dataHubStore.setModelData([...new Set(modelArr)]);
             }
-            console.log(gltf.scene);
             scene.add(gltf.scene);
         });
-    }
-
-    // 设置模型高亮选中
-    function setComposer(width, height) {
-        // 设置高亮
-        composer = new THREE.EffectComposer(renderer); // 配置composer
-        let renderPass = new THREE.RenderPass(scene, camera); // 配置通道
-        composer.addPass(renderPass); // 将通道加入composer
-        outlinePass = new THREE.OutlinePass(new THREE.Vector2(width, height), scene, camera);
-        outlinePass.visibleEdgeColor.set('#00ff00'); // 选中颜色
-        outlinePass.edgeStrength = 1.3; // 强度
-        outlinePass.edgeGlow = 1.5; // 边缘明暗度
-        outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
-        composer.addPass(outlinePass);
-        composer.selectedObjectEffect = function (objs) {
-            let selectedObjects = [];
-            selectedObjects.push(objs);
-            outlinePass.selectedObjects = selectedObjects;
-        };
     }
     // 设置返回按钮、模型数据列表（是标段还是作业面）
     function setReturnBtnOrModelList(currentData) {
@@ -101,11 +78,9 @@ const Datahub = () => {
         let lists = [];
         if (currentData.pModelName) {
             setShowReturnBtn(true);
+            // 确认对比是处于标段模型还是作业面
             if (currentData.pModelName === data.modelName) {
-                // 标段返回到项目
-                setShowReturnProBtn(true);
-                setShowReturnBDBtn(false);
-                // 作业面列表
+                // 标段时，展示作业面列表，获取作业面列表
                 for (let i = 0; i < data.bidSectionList.length; i++) {
                     const item = data.bidSectionList[i];
                     if (currentData.modelName === item.modelName) {
@@ -113,15 +88,12 @@ const Datahub = () => {
                     }
                 }
             } else {
-                // 作业面返回到标段
-                setShowReturnBDBtn(true);
-                setShowReturnProBtn(false);
+                // 作业面时，无下级模型列表
                 lists = [];
             }
         } else {
+            // 项目模型时，无返回按钮，展示标段列表
             setShowReturnBtn(false);
-            setShowReturnBDBtn(false);
-            setShowReturnProBtn(false);
             lists = data.bidSectionList;
         }
         setModelList(lists);
@@ -131,25 +103,26 @@ const Datahub = () => {
      * 设置当前模型可高亮数据
      * @param {*} type 当前模型是项目模型还是标段模型
      */
-    function setModelComposerData(type) {
+    function setModelComposerData() {
         let composerModel = dataHubStore.composerModelData;
+        const currentModel = { ...dataHubStore.currentModel };
         let composerArr = [];
         for (let i = 0; i < composerModel.length; i++) {
             const item = composerModel[i];
-            if (type === 'product') {
-                // 项目模型只有标段可高亮
-                if (item.name.indexOf('WR') === -1) {
-                    composerArr.push(item);
-                }
-            } else if (type === 'bidsection') {
+            // 判断是项目模型还是标段模型
+            if (currentModel.pModelName === dataHubStore.data.modelName) {
                 // 标段模型只有作业面可高亮
                 if (item.name.indexOf('WR') !== -1) {
+                    composerArr.push(item);
+                }
+            } else {
+                // 项目模型只有标段可高亮
+                if (item.name.indexOf('WR') === -1) {
                     composerArr.push(item);
                 }
             }
         }
         setComposerData(composerArr);
-
     }
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
@@ -192,15 +165,11 @@ const Datahub = () => {
         // 根据选中数据设置模型列表、返回按钮状态
         setReturnBtnOrModelList(value);
         // 设置模型高亮
-        if (!value.pModelName) {
-            setModelComposerData('product');
-        } else if (value.pModelName === dataHubStore.data.modelName) {
-            setModelComposerData('bidsection');
-        }
+        setModelComposerData();
     }
 
     // 返回上一级
-    function returnLast(type) {
+    function returnLast() {
         const currentModel = { ...dataHubStore.currentModel };
         const model = [...dataHubStore.modelData];
         for (let i = 0; i < model.length; i++) {
@@ -216,16 +185,13 @@ const Datahub = () => {
                 }
             });
         }
-        // 返回到项目模型时，定义当前模型初始值
-        if (type === 'product') {
+        // 判断是上一级是项目还是标段
+        if (currentModel.pModelName === dataHubStore.data.modelName) {
             // 设置当前模型数据为项目模型数据
             dataHubStore.setCurrentModel(dataHubStore.data);
             // 返回项目模型后隐藏返回按钮、重置模型数据
             setReturnBtnOrModelList(dataHubStore.data);
-            // 设置模型高亮数据
-            setModelComposerData('product');
-        }
-        if (type === 'bidsection') {
+        } else {
             for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
                 const item = dataHubStore.data.bidSectionList[i];
                 if (item.modelName === currentModel.pModelName) {
@@ -235,11 +201,28 @@ const Datahub = () => {
                     setReturnBtnOrModelList(item);
                 }
             }
-            // 设置模型高亮数据
-            setModelComposerData('bidsection');
         }
+        // 设置模型高亮数据
+        setModelComposerData();
     }
-
+    // 设置模型高亮选中
+    function setComposer(width, height) {
+        // 设置高亮
+        composer = new THREE.EffectComposer(renderer); // 配置composer
+        let renderPass = new THREE.RenderPass(scene, camera); // 配置通道
+        composer.addPass(renderPass); // 将通道加入composer
+        outlinePass = new THREE.OutlinePass(new THREE.Vector2(width, height), scene, camera);
+        outlinePass.visibleEdgeColor.set('#00ff00'); // 选中颜色
+        outlinePass.edgeStrength = 1.3; // 强度
+        outlinePass.edgeGlow = 1.5; // 边缘明暗度
+        outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
+        composer.addPass(outlinePass);
+        composer.selectedObjectEffect = function (objs) {
+            let selectedObjects = [];
+            selectedObjects.push(objs);
+            outlinePass.selectedObjects = selectedObjects;
+        };
+    }
     // 渲染函数
     function renderFn() {
         requestAnimationFrame(renderFn);
@@ -289,7 +272,7 @@ const Datahub = () => {
                     let selectModelName = selectObj[0].object.name;
                     // 获取当前模型的父级，原因：由于数据结构为树形结构，需要查找父级数据遍历得到子级数据
                     let selectParentName = selectObj[0].object.parent.name; // 父级模型名称
-
+                    // 获取模型数据
                     let data = dataHubStore.data;
                     // 判断是否是标段模型or作业面模型，确认跳转模型
                     let filterName = selectModelName.substring(selectModelName.length - 2);
@@ -365,8 +348,6 @@ const Datahub = () => {
 
         // 监听鼠标事件
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        // controls.enableDamping = true;//设置为true则启用阻尼(惯性)，默认false
-        // controls.dampingFactor = 0.05;//值越小阻尼效果越强
         // 高亮设置
         setComposer(width, height);
         // 渲染
@@ -377,15 +358,7 @@ const Datahub = () => {
         <div className="ui_model_container" ref={datahubBox}></div>
         <div className="ui_model_list_box">
             {
-                showReturnBtn ? <Fragment>
-                    {
-                        showReturnProBtn &&
-                        <Button className='return_btn' onClick={() => returnLast('product')}><LeftOutlined />返回</Button>
-                    }
-                    {showReturnBDBtn &&
-                        <Button className='return_btn' onClick={() => returnLast('bidsection')}><LeftOutlined />返回</Button>
-                    }
-                </Fragment> : null
+                showReturnBtn ? <Button className='return_btn' onClick={() => returnLast()}><LeftOutlined />返回</Button> : null
             }
             {
                 modelList.length > 0 ? modelList.map((item) => {
