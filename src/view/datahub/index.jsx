@@ -45,9 +45,6 @@ const Datahub = () => {
         let modelArr = [...dataHubStore.modelData];
         gltfLoader.load(model.modelUrl, (gltf) => {
             let modelComposerArr = [...dataHubStore.composerModelData]; // 临时数组，储存标段作业面，用于高亮
-            // 设置当前模型对象
-            dataHubStore.setCurrentModel(model);
-
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
                     // 模型Mesh开启阴影
@@ -70,6 +67,8 @@ const Datahub = () => {
             }
             scene.add(gltf.scene);
         });
+        // 设置当前模型对象
+        dataHubStore.setCurrentModel(model);
     }
     // 设置返回按钮、模型数据列表（是标段还是作业面）
     function setReturnBtnOrModelList(currentData) {
