@@ -46,7 +46,7 @@ const Datahub = () => {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
         gltfLoader.load(model.modelUrl, (gltf) => {
-            let modelArr = [...dataHubStore.modelData]; // 临时数组，储存标段作业面，用于高亮
+            let modelArr = [...dataHubStore.composerModel]; // 临时数组，储存标段作业面，用于高亮
             // 设置当前模型对象
             dataHubStore.setCurrentModel(model);
 
@@ -59,7 +59,7 @@ const Datahub = () => {
                     let filterName = obj.name.substring(obj.name.length - 2);
                     if (filterName === 'BD' || filterName === 'WR') {
                         modelArr.push(obj);
-                        dataHubStore.setModelData([...new Set(modelArr)]);
+                        dataHubStore.setComposerModel([...new Set(modelArr)]);
                         // 设置高亮
                         setComposerData([...new Set(modelArr)]);
                     }
@@ -120,39 +120,11 @@ const Datahub = () => {
         setModelList(lists);
     }
 
-    /**
-     * 设置当前模型可高亮数据
-     * @param {*} type 当前模型是项目模型还是标段模型
-     */
-    function setModelComposerData(type) {
-        let composerModel = dataHubStore.modelData;
-        let composerArr = [];
-        for (let i = 0; i < composerModel.length; i++) {
-            const item = composerModel[i];
-            if (type === 'product') {
-                // 项目模型只有标段可高亮
-                if (item.name.indexOf('WR') === -1) {
-                    composerArr.push(item);
-                }
-            } else if (type === 'bidsection') {
-                // 标段模型只有作业面可高亮
-                if (item.name.indexOf('WR') !== -1) {
-                    composerArr.push(item);
-                }
-            }
-        }
-        setComposerData(composerArr);
-
-    }
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
         const currentModel = { ...dataHubStore.currentModel };
-        scene.traverse(function (child) {
-            if (child.name === currentModel.modelName || child.name.indexOf(currentModel.modelName + '_w') !== -1) {
-                // 设置当前模型对象
-                scene.remove(child.parent);
-            }
-        });
+        let model = scene.getObjectByName(currentModel.modelName);
+        model.visible = false;
     }
     /**
      * 选择标段模型or作业面模型
@@ -161,7 +133,6 @@ const Datahub = () => {
     function selectChildModel(value) {
         // 隐藏上一个模型
         visibleModel();
-        console.log(scene);
         // 判断模型是否已经加载过
         let alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
         if (alreadyLoadedModel.indexOf(value.modelName) !== -1) {
@@ -180,17 +151,12 @@ const Datahub = () => {
         }
         // 根据选中数据设置模型列表、返回按钮状态
         setReturnBtnOrModelList(value);
-        // 设置模型高亮
-        if (!value.pModelName) {
-            setModelComposerData('product');
-        } else if (value.pModelName === dataHubStore.data.modelName) {
-            setModelComposerData('bidsection');
-        }
     }
 
     // 返回上一级
     function returnLast(type) {
         const currentModel = { ...dataHubStore.currentModel };
+        let composerModel = dataHubStore.composerModel;
         scene.traverse(function (child) {
             if (currentModel.pModelName) {
                 // 显示上一级
@@ -209,8 +175,15 @@ const Datahub = () => {
             dataHubStore.setCurrentModel(dataHubStore.data);
             // 返回项目模型后隐藏返回按钮、重置模型数据
             setReturnBtnOrModelList(dataHubStore.data);
-            // 设置模型高亮数据
-            setModelComposerData('product');
+            // 设置高亮数据
+            let composerArr = [];
+            for (let i = 0; i < composerModel.length; i++) {
+                const item = composerModel[i];
+                if (item.name.indexOf('WR') === -1) {
+                    composerArr.push(item);
+                }
+            }
+            setComposerData(composerArr);
         }
         if (type === 'bidsection') {
             for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
@@ -222,8 +195,15 @@ const Datahub = () => {
                     setReturnBtnOrModelList(item);
                 }
             }
-            // 设置模型高亮数据
-            setModelComposerData('bidsection');
+            // 设置高亮数据
+            let composerArr = [];
+            for (let j = 0; j < composerModel.length; j++) {
+                const ele = composerModel[j];
+                if (ele.name.indexOf('WR') !== -1) {
+                    composerArr.push(ele);
+                }
+            }
+            setComposerData(composerArr);
         }
     }
 
