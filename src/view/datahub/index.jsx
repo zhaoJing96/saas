@@ -45,8 +45,9 @@ const Datahub = () => {
     function setGltfModel(model) {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
+        let modelArr = [...dataHubStore.modelData];
         gltfLoader.load(model.modelUrl, (gltf) => {
-            let modelArr = [...dataHubStore.modelData]; // 临时数组，储存标段作业面，用于高亮
+            let modelComposerArr = [...dataHubStore.composerModelData]; // 临时数组，储存标段作业面，用于高亮
             // 设置当前模型对象
             dataHubStore.setCurrentModel(model);
 
@@ -55,16 +56,22 @@ const Datahub = () => {
                     // 模型Mesh开启阴影
                     obj.castShadow = true;
                     obj.receiveShadow = true;
+
                     // 判断是否是标段模型or作业面模型，用于高亮选中
                     let filterName = obj.name.substring(obj.name.length - 2);
                     if (filterName === 'BD' || filterName === 'WR') {
-                        modelArr.push(obj);
-                        dataHubStore.setModelData([...new Set(modelArr)]);
+                        modelComposerArr.push(obj);
+                        dataHubStore.setComposerModelData([...new Set(modelComposerArr)]);
                         // 设置高亮
-                        setComposerData([...new Set(modelArr)]);
+                        setComposerData([...new Set(modelComposerArr)]);
                     }
                 }
             });
+            if (gltf.scene.children[0].name) {
+                modelArr.push(gltf.scene);
+                dataHubStore.setModelData([...new Set(modelArr)]);
+            }
+            console.log(gltf.scene);
             scene.add(gltf.scene);
         });
     }
@@ -125,7 +132,7 @@ const Datahub = () => {
      * @param {*} type 当前模型是项目模型还是标段模型
      */
     function setModelComposerData(type) {
-        let composerModel = dataHubStore.modelData;
+        let composerModel = dataHubStore.composerModelData;
         let composerArr = [];
         for (let i = 0; i < composerModel.length; i++) {
             const item = composerModel[i];
@@ -148,7 +155,7 @@ const Datahub = () => {
     function visibleModel() {
         const currentModel = { ...dataHubStore.currentModel };
         scene.traverse(function (child) {
-            if (child.name === currentModel.modelName || child.name.indexOf(currentModel.modelName + '_w') !== -1) {
+            if (child.name === currentModel.modelName) {
                 // 设置当前模型对象
                 scene.remove(child.parent);
             }
@@ -161,17 +168,21 @@ const Datahub = () => {
     function selectChildModel(value) {
         // 隐藏上一个模型
         visibleModel();
-        console.log(scene);
         // 判断模型是否已经加载过
         let alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
         if (alreadyLoadedModel.indexOf(value.modelName) !== -1) {
-            scene.traverse(function (child) {
-                if (child.name === value.modelName || child.name.indexOf(value.modelName + '_w') !== -1) {
-                    // 设置当前模型对象
-                    dataHubStore.setCurrentModel(value);
-                    child.visible = true;
-                }
-            });
+            const model = [...dataHubStore.modelData];
+            for (let i = 0; i < model.length; i++) {
+                const item = model[i];
+                item.traverse(function (child) {
+                    // 添加当前模型
+                    if (child.name === value.modelName) {
+                        // 设置当前模型对象
+                        dataHubStore.setCurrentModel(value);
+                        scene.add(child.parent);
+                    }
+                });
+            }
         } else {
             // 未加载过，加载当前模型，设置模型初始值,存储模型
             alreadyLoadedModel.push(value.modelName);
@@ -191,18 +202,20 @@ const Datahub = () => {
     // 返回上一级
     function returnLast(type) {
         const currentModel = { ...dataHubStore.currentModel };
-        scene.traverse(function (child) {
-            if (currentModel.pModelName) {
-                // 显示上一级
+        const model = [...dataHubStore.modelData];
+        for (let i = 0; i < model.length; i++) {
+            const item = model[i];
+            item.traverse(function (child) {
+                // 添加显示上一级模型
                 if (child.name === currentModel.pModelName) {
-                    child.visible = true;
+                    scene.add(child.parent);
                 }
-                // 隐藏自身 标段名相等，作业面名等于作业面名 + '_w'
-                if (child.name === currentModel.modelName || child.name.indexOf(currentModel.modelName + '_w') !== -1) {
-                    child.visible = false;
+                // 隐藏自身模型
+                if (child.name === currentModel.modelName) {
+                    scene.remove(child.parent);
                 }
-            }
-        });
+            });
+        }
         // 返回到项目模型时，定义当前模型初始值
         if (type === 'product') {
             // 设置当前模型数据为项目模型数据
