@@ -250,14 +250,10 @@ const Datahub = () => {
     function onWindowResize() {
         let width = datahubBox.current.offsetWidth;
         let height = datahubBox.current.offsetHeight;
-        camera.left = width / - 2;
-        camera.right = width / 2;
-        camera.top = height / 2;
-        camera.bottom = height / -2;
         camera.aspect = width / height;
         // 更新相机投影矩阵，在相机任何参数被改变以后必须被调用
         camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
+        renderer.setSize(width, height); // 设置渲染区域尺寸
     }
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
