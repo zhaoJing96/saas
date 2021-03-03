@@ -44,7 +44,7 @@ const Datahub = () => {
         let gltfLoader = new THREE.GLTFLoader();
         let modelArr = [...dataHubStore.modelData];
         gltfLoader.load(model.modelUrl, (gltf) => {
-            let modelComposerArr = [...dataHubStore.composerModelData]; // 临时数组，储存标段作业面，用于高亮
+            let modelComposerArr = []; // 临时数组，储存标段作业面，用于高亮
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
                     // 模型Mesh开启阴影
@@ -55,12 +55,12 @@ const Datahub = () => {
                     let filterName = obj.name.substring(obj.name.length - 2);
                     if (filterName === 'BD' || filterName === 'WR') {
                         modelComposerArr.push(obj);
-                        dataHubStore.setComposerModelData([...new Set(modelComposerArr)]);
-                        // 设置高亮
+                        // 设置初始化高亮模型
                         setComposerData([...new Set(modelComposerArr)]);
                     }
                 }
             });
+            // 设置网格模型对象、用于模型二次点击不解析加载模型
             if (gltf.scene.children[0].name) {
                 modelArr.push(gltf.scene);
                 dataHubStore.setModelData([...new Set(modelArr)]);
@@ -97,31 +97,21 @@ const Datahub = () => {
         }
         setModelList(lists);
     }
-
-    /**
-     * 设置当前模型可高亮数据
-     * @param {*} type 当前模型是项目模型还是标段模型
-     */
-    function setModelComposerData() {
-        let composerModel = dataHubStore.composerModelData;
-        const currentModel = { ...dataHubStore.currentModel };
-        let composerArr = [];
-        for (let i = 0; i < composerModel.length; i++) {
-            const item = composerModel[i];
-            // 判断是项目模型还是标段模型
-            if (currentModel.pModelName === dataHubStore.data.modelName) {
-                // 标段模型只有作业面可高亮
-                if (item.name.indexOf('WR') !== -1) {
-                    composerArr.push(item);
-                }
-            } else {
-                // 项目模型只有标段可高亮
-                if (item.name.indexOf('WR') === -1) {
-                    composerArr.push(item);
+    // 获取当前模型子元素、获取可点击、可高亮模型
+    function getChildModelSetComposer() {
+        let composerModelArr = [];
+        scene && scene.traverse((child) => {
+            if (child.name === dataHubStore.currentModel.modelName) {
+                for (let i = 0; i < child.children.length; i++) {
+                    const ele = child.children[i];
+                    if (ele.type === 'Mesh') {
+                        composerModelArr.push(ele);
+                    }
                 }
             }
-        }
-        setComposerData(composerArr);
+        });
+        setComposerData(composerModelArr);
+        return composerModelArr;
     }
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
@@ -164,7 +154,7 @@ const Datahub = () => {
         // 根据选中数据设置模型列表、返回按钮状态
         setReturnBtnOrModelList(value);
         // 设置模型高亮
-        setModelComposerData();
+        getChildModelSetComposer();
     }
 
     // 返回上一级
@@ -202,7 +192,7 @@ const Datahub = () => {
             }
         }
         // 设置模型高亮数据
-        setModelComposerData();
+        getChildModelSetComposer();
     }
     // 设置模型高亮选中
     function setComposer(width, height) {
@@ -263,9 +253,10 @@ const Datahub = () => {
 
     useEffect(() => {
         // 监听点击事件，模型切换
-        if (composerData) {
-            datahubBox.current.addEventListener('click', (event) => {
-                let selectObj = getCanvasIntersects(event, composerData, camera, datahubBox.current);
+        datahubBox.current.addEventListener('click', (event) => {
+            let composerModelArr = getChildModelSetComposer() || []; // 获取可点击高亮模型数据
+            if (composerModelArr.length > 0) {
+                let selectObj = getCanvasIntersects(event, composerModelArr, camera, datahubBox.current);
                 if (selectObj && selectObj.length > 0) {
                     // 获取当前点击模型名称
                     let selectModelName = selectObj[0].object.name;
@@ -306,9 +297,9 @@ const Datahub = () => {
                         }
                     }
                 }
-            });
-        }
-    }, [composerData]);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         // 监听窗体变化
