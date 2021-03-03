@@ -70,7 +70,8 @@ module.exports = {
         //开发环境目录
         sevices: _public,
         //开发环境host
-        host: 'saasdev.dhwork.cn',
+        host: getIPAdress(),
+        // host: 'saasdev.dhwork.cn',
         //开发环境端口
         port: 80,
         //开启代理
