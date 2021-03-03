@@ -194,6 +194,18 @@ const Datahub = () => {
         // 设置模型高亮数据
         getChildModelSetComposer();
     }
+    // 移入列表选中模型
+    function hoverSelectModel(model) {
+        let objName = model.pModelName + '_' + model.modelName;
+        // 获取当前选中模型对象
+        let selectObj = scene.getObjectByName(objName);
+        if (selectObj) {
+            isComposer = true;
+            composer.selectedObjectEffect(selectObj);
+        } else {
+            isComposer = false;
+        }
+    }
     // 设置模型高亮选中
     function setComposer(width, height) {
         // 设置高亮
@@ -352,7 +364,7 @@ const Datahub = () => {
             }
             {
                 modelList.length > 0 ? modelList.map((item) => {
-                    return <div className='model_item' key={item.modelName} onClick={() => selectChildModel(item)}>{item.name}</div>;
+                    return <div className='model_item' key={item.modelName} onClick={() => selectChildModel(item)} onMouseOver={() => hoverSelectModel(item)}>{item.name}</div>;
                 }) : <div className='model_item noData'>暂无数据</div>
             }
         </div>
