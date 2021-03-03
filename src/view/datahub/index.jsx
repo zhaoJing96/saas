@@ -14,6 +14,7 @@ const Datahub = () => {
     const [showReturnBtn, setShowReturnBtn] = useState(false); // 是否展示返回按钮
     const [modelList, setModelList] = useState([]); // 模型数据列表
     const [composerData, setComposerData] = useState([]); // 模型高亮数据
+    const [loadingModel, setLoadingModel] = useState(false); // 模型是否加载完成
     const datahubBox = useRef(); // canvas盒子
     // 设置灯光
     function setLight() {
@@ -43,7 +44,7 @@ const Datahub = () => {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
         let modelArr = [...dataHubStore.modelData];
-        gltfLoader.load(model.modelUrl, (gltf) => {
+        gltfLoader.load(model.modelUrl, gltf => {
             let modelComposerArr = []; // 临时数组，储存标段作业面，用于高亮
             gltf.scene.traverse(obj => {
                 if (obj.isMesh) {
@@ -66,6 +67,15 @@ const Datahub = () => {
                 dataHubStore.setModelData([...new Set(modelArr)]);
             }
             scene.add(gltf.scene);
+            // 判断模型加载中
+            setLoadingModel(false);
+        }, xhr => {
+            // 模型加载中
+            setLoadingModel(true);
+        }, err => {
+            console.log(`模型解析错误：`, err);
+            // 判断模型加载中
+            setLoadingModel(false);
         });
         // 设置当前模型对象
         dataHubStore.setCurrentModel(model);
@@ -357,6 +367,7 @@ const Datahub = () => {
     }, [dataHubStore.data]);
 
     return <div className="ui_datahub_container">
+        {loadingModel && <div className='loadingBox'></div>}
         <div className="ui_model_container" ref={datahubBox}></div>
         <div className="ui_model_list_box">
             {

@@ -4,18 +4,35 @@
     height: 100%;
     position: relative;
 
+    // 模型记载中蒙层
+    .loadingBox {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: rgba(0, 0, 0, 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: not-allowed;
+    }
+
     // 模型加载盒子
     .ui_model_container {
         width: 100%;
         height: 100%;
     }
 
+    // 模型列表样式
     .ui_model_list_box {
         position: absolute;
         max-height: 50vh;
         width: 100px;
         top: 25vh;
         right: 24px;
+        z-index: 1;
         background-color: #ffffff;
         padding: 10px;
 
@@ -38,11 +55,11 @@
                 background-color: #cecaca;
             }
 
+            // 无数据样式
             &.noData {
                 cursor: not-allowed;
             }
         }
-
         .return_btn {
             width: 80px;
         }
