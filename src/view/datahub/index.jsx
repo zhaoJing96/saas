@@ -353,7 +353,7 @@ const Datahub = () => {
             {
                 modelList.length > 0 ? modelList.map((item) => {
                     return <div className='model_item' key={item.modelName} onClick={() => selectChildModel(item)}>{item.name}</div>;
-                }) : <div className='model_item'>暂无数据</div>
+                }) : <div className='model_item noData'>暂无数据</div>
             }
         </div>
     </div>;
