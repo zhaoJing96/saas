@@ -254,6 +254,7 @@ const Datahub = () => {
         // 更新相机投影矩阵，在相机任何参数被改变以后必须被调用
         camera.updateProjectionMatrix();
         renderer.setSize(width, height); // 设置渲染区域尺寸
+        // window.location.reload();
     }
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
