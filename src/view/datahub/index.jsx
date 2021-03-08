@@ -248,13 +248,14 @@ const Datahub = () => {
     }
     // 监听窗体变化、自适应窗体事件
     function onWindowResize() {
-        let width = datahubBox.current.offsetWidth;
-        let height = datahubBox.current.offsetHeight;
-        camera.aspect = width / height;
-        // 更新相机投影矩阵，在相机任何参数被改变以后必须被调用
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height); // 设置渲染区域尺寸
-        // window.location.reload();
+        setTimeout(() => {
+            let width = datahubBox.current.offsetWidth;
+            let height = datahubBox.current.offsetHeight;
+            camera.aspect = width / height;
+            // 更新相机投影矩阵，在相机任何参数被改变以后必须被调用
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height); // 设置渲染区域尺寸
+        }, 500);
     }
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
