@@ -1,13 +1,44 @@
 // 主控台
-
-.datahub_container{
-    position: relative;
+.ui_datahub_container {
+    width: 100%;
+    height: 100%;
 }
-// 3D主控台
-.ui_datahub3D_container {
+
+// 2D/3D公共样式
+.datahub_container {
     width: 100%;
     height: 100%;
     position: relative;
+
+    .handle_btn_box {
+
+        .select_2D3D_btn {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+        }
+    }
+}
+
+// 2D主控台
+.ui_datahub2D_container {
+    .ui_map_box {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .select_2D3D_btn {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+    }
+}
+
+// 3D主控台
+.ui_datahub3D_container {
 
     // 模型记载中蒙层
     .loadingBox {
@@ -66,6 +97,7 @@
                 cursor: not-allowed;
             }
         }
+
         .return_btn {
             width: 80px;
         }

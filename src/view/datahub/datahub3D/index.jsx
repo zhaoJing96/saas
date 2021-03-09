@@ -379,7 +379,7 @@ const DataHub3D = ({ setSelect2DOr3D }) => {
             }
         </div>
         <div className='handle_btn_box'>
-            <Button onClick={() => { setSelect2DOr3D(false); }}>切换到2D</Button>
+            <Button className='select_2D3D_btn' onClick={() => { setSelect2DOr3D(false); }}>切换到2D</Button>
         </div>
     </div>;
 };
