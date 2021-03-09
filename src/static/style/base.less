@@ -1,27 +1,40 @@
-*{box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;margin:0;padding:0;}
-html,body {
+* {
     box-sizing: border-box;
-    font-size: 62.5%; /**10**/
-    font-family:Monospaced Number, Chinese Quote, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
+
+html,
+body {
+    box-sizing: border-box;
+    font-size: 62.5%;
+    /**10**/
+    font-family: Monospaced Number, Chinese Quote, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif;
+}
+
 body {
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    font-size: 1.4em;    /**14**/
+    font-size: 1.4em;
+    /**14**/
     font-style: normal;
     margin: 0;
     padding: 0;
-    line-height:1.5;
+    line-height: 1.5;
 }
+
 /*滚动条*/
 /*IE内核*/
-body{
-    scrollbar-arrow-color:#EFEFEF;
-    scrollbar-face-color:#A7A7A7;
-    scrollbar-highlight-color:#EFEFEF;
-    scrollbar-shadow-color:#EFEFEF;
+body {
+    scrollbar-arrow-color: #EFEFEF;
+    scrollbar-face-color: #A7A7A7;
+    scrollbar-highlight-color: #EFEFEF;
+    scrollbar-shadow-color: #EFEFEF;
 }
+
 /*!*-webkit内核-*!*/
 ::-webkit-scrollbar {
     width: 5px;
@@ -43,51 +56,131 @@ body{
     background: #ccc;
 }
 
-a,a:focus,a:hover,a:active {
+a,
+a:focus,
+a:hover,
+a:active {
     cursor: pointer;
     color: #666;
-    outline:none;
+    outline: none;
     text-decoration: none;
 }
 
-div:focus {outline: none;}
-ol, ul {list-style: none;}
-/* tables still need 'cellspacing="0"' in the markup */
-table {border-collapse: collapse;border-spacing: 0;}
-/*输入下拉*/
-input,select,textarea{
-    outline:none;
-    text-decoration:none;
+div:focus {
+    outline: none;
 }
+
+ol,
+ul {
+    list-style: none;
+}
+
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/*输入下拉*/
+input,
+select,
+textarea {
+    outline: none;
+    text-decoration: none;
+}
+
 /*取消IE文本框滚动条*/
-textarea{overflow: auto}
+textarea {
+    overflow: auto
+}
+
 /*btn*/
-button{outline:none;text-decoration:none;border:none;cursor:pointer}
+button {
+    outline: none;
+    text-decoration: none;
+    border: none;
+    cursor: pointer
+}
+
 /*标题*/
-h1,h2,h3,h4{
+h1,
+h2,
+h3,
+h4 {
     font-weight: 6000;
 }
-h1{font-size: 38px;}
-h2{font-size: 30px;}
-h3{font-size: 24px;}
-h4{font-size: 20px;}
-/*浮动*/
-.clearfix:after,.clearfix:before{display:block;height: 0px;clear: both;visibility: hidden;font-size: 0;content: "";}
-.fr {float: right;}
-.fl {float: left;} 
-/*文本位置*/
-.text-left {text-align: left !important;}
-.text-center {text-align: center !important;}
-.text-right {text-align: right !important;}
-/*文本省略溢出,元素必须是inline-block或block类型的元素,且有宽度min-width/width*/
-.el-ellipsis{
-  overflow: hidden;
-  text-overflow:ellipsis;
-  white-space: nowrap;
+
+h1 {
+    font-size: 38px;
 }
-.nowrap{white-space: nowrap;}/* 不换行 */
-.autowrap{word-wrap: break-word;word-break: normal;}/* 自动换行 */
-.mustwrap{word-break: break-all;}/* 强制换行 */
+
+h2 {
+    font-size: 30px;
+}
+
+h3 {
+    font-size: 24px;
+}
+
+h4 {
+    font-size: 20px;
+}
+
+/*浮动*/
+.clearfix:after,
+.clearfix:before {
+    display: block;
+    height: 0px;
+    clear: both;
+    visibility: hidden;
+    font-size: 0;
+    content: "";
+}
+
+.fr {
+    float: right;
+}
+
+.fl {
+    float: left;
+}
+
+/*文本位置*/
+.text-left {
+    text-align: left !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+/*文本省略溢出,元素必须是inline-block或block类型的元素,且有宽度min-width/width*/
+.el-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+/* 不换行 */
+.autowrap {
+    word-wrap: break-word;
+    word-break: normal;
+}
+
+/* 自动换行 */
+.mustwrap {
+    word-break: break-all;
+}
+
+/* 强制换行 */
 /*超出N行显示省略号,根据实际情况调整n*/
 .hide-text-n {
     display: -webkit-box;
@@ -95,28 +188,33 @@ h4{font-size: 20px;}
     -webkit-line-clamp: n;
     overflow: hidden
 }
+
 .hide-text-1 {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
     overflow: hidden
 }
+
 .hide-text-2 {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden
 }
+
 /*内容区超出滚动*/
-.container-scroll-auto{
-  height:100%;
-  overflow:hidden;
-  overflow-y:auto;
+.container-scroll-auto {
+    height: 100%;
+    overflow: hidden;
+    overflow-y: auto;
 }
-.flex_box{
+
+.flex_box {
     float: left;
     max-width: 90%;
 }
-.clear_f{
+
+.clear_f {
     clear: both;
 }
