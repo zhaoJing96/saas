@@ -10,7 +10,7 @@ let scene, camera, renderer, controls, composer, outlinePass;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
 
-const DataHub3D = ({ setSelect2DOr3D }) => {
+const DataHub3D = () => {
     const [showReturnBtn, setShowReturnBtn] = useState(false); // 是否展示返回按钮
     const [modelList, setModelList] = useState([]); // 模型数据列表
     const [composerData, setComposerData] = useState([]); // 模型高亮数据
@@ -365,7 +365,7 @@ const DataHub3D = ({ setSelect2DOr3D }) => {
         renderFn();
     }, [dataHubStore.data]);
 
-    return <div className="ui_datahub3D_container datahub_container">
+    return <div className="ui_datahub3D_container">
         {loadingModel && <div className='loadingBox'></div>}
         <div className="ui_model_container" ref={datahubBox}></div>
         <div className="ui_model_list_box">
@@ -377,9 +377,6 @@ const DataHub3D = ({ setSelect2DOr3D }) => {
                     return <div className='model_item' key={item.modelName} onClick={() => selectChildModel(item)} onMouseOver={() => hoverSelectModel(item)}>{item.name}</div>;
                 }) : <div className='model_item noData'>暂无数据</div>
             }
-        </div>
-        <div className='handle_btn_box'>
-            <Button className='select_2D3D_btn' onClick={() => { setSelect2DOr3D(false); }}>切换到2D</Button>
         </div>
     </div>;
 };

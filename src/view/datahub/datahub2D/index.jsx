@@ -1,6 +1,6 @@
 // 2D主控台
 import React, { useEffect, useState } from 'react';
-import { Button } from 'antd';
+// import { Button } from 'antd';
 import { Map, View } from 'ol';
 import * as Proj from 'ol/proj';
 import TileLayer from 'ol/layer/Tile'; // 图层
@@ -8,7 +8,7 @@ import XYZ from 'ol/source/XYZ';
 // import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'; // 图层
 // import { XYZ, Vector as VectorSource } from 'ol/source';
 
-const DataHub2D = ({ setSelect2DOr3D }) => {
+const DataHub2D = () => {
     const [map, setMap] = useState(null); // map对象
     const [view, setView] = useState(null); // view对象
     function amapFn() {
@@ -46,10 +46,9 @@ const DataHub2D = ({ setSelect2DOr3D }) => {
         setView(viewObj);
     }, []);
 
-    return <div className='ui_datahub2D_container datahub_container'>
+    return <div className='ui_datahub2D_container'>
         {/* 地图盒子 */}
         <div className='ui_map_box' id='map'></div>
-        <Button className='select_2D3D_btn' onClick={() => { setSelect2DOr3D(true); }}>切换到3D</Button>
     </div>;
 };
 export default DataHub2D;
