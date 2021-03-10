@@ -54,11 +54,31 @@ const DataHub2D = () => {
 
     // 选择当前标段或者作业面
     function selectChildData(value) {
-        console.log(value);
-        // dataHubStore.setCurrentSelectData(value);
+        // 设置当前模型数据
+        dataHubStore.setCurrentModel(value);
         setReturnBtnOrList(value);
     }
-
+    // 返回上一级
+    function returnLast(){
+        const currentModel = { ...dataHubStore.currentModel };
+        // 判断是上一级是项目还是标段
+        if (currentModel.pModelName === dataHubStore.data.modelName) {
+            // 设置当前数据为项目数据
+            dataHubStore.setCurrentModel(dataHubStore.data);
+            // 返回项目后隐藏返回按钮、重置列表数据
+            setReturnBtnOrList(dataHubStore.data);
+        } else {
+            for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
+                const item = dataHubStore.data.bidSectionList[i];
+                if (item.modelName === currentModel.pModelName) {
+                    // 设置当前模型数据
+                    dataHubStore.setCurrentModel(item);
+                    // 设置模型列表数据，按钮状态
+                    setReturnBtnOrList(item);
+                }
+            }
+        }
+    }
     useEffect(() => {
         if (dataHubStore.data) {
             // 设置初始选择模型
@@ -97,8 +117,7 @@ const DataHub2D = () => {
         <div className='ui_map_box' id='map'></div>
         <div className="ui_model_list_box">
             {
-                showReturnBtn ? <Button className='return_btn'><LeftOutlined />返回</Button> : null
-                // showReturnBtn ? <Button className='return_btn' onClick={() => returnLast()}><LeftOutlined />返回</Button> : null
+                showReturnBtn ? <Button className='return_btn' onClick={() => returnLast()}><LeftOutlined />返回</Button> : null
             }
             {
                 modelList.length > 0 ? modelList.map((item) => {

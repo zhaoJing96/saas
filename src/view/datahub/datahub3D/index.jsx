@@ -193,9 +193,9 @@ const DataHub3D = () => {
             for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
                 const item = dataHubStore.data.bidSectionList[i];
                 if (item.modelName === currentModel.pModelName) {
-                    // 设置当前模型数据为项目模型数据
+                    // 设置当前模型数据
                     dataHubStore.setCurrentModel(item);
-                    // 返回项目模型后隐藏返回按钮、重置模型数据
+                    // 返回上级模型、重置模型列表数据
                     setReturnBtnOrModelList(item);
                 }
             }
