@@ -6,7 +6,8 @@ import { Map, View } from 'ol';
 import * as Proj from 'ol/proj';
 import TileLayer from 'ol/layer/Tile'; // 图层
 import XYZ from 'ol/source/XYZ';
-import dataHubStore from '@/common/store/datahub';
+import dataHubStore from '@/common/store/datahub'; // 主控台store
+import dataHub2DStore from '@/common/store/datahub/datahub2D'; // 2D主控台store
 // import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'; // 图层
 // import { XYZ, Vector as VectorSource } from 'ol/source';
 
@@ -55,24 +56,24 @@ const DataHub2D = () => {
     // 选择当前标段或者作业面
     function selectChildData(value) {
         // 设置当前模型数据
-        dataHubStore.setCurrentModel(value);
+        dataHub2DStore.setCurrentSelectData(value);
         setReturnBtnOrList(value);
     }
     // 返回上一级
-    function returnLast(){
-        const currentModel = { ...dataHubStore.currentModel };
+    function returnLast() {
+        const currentSelectData = { ...dataHub2DStore.currentSelectData };
         // 判断是上一级是项目还是标段
-        if (currentModel.pModelName === dataHubStore.data.modelName) {
+        if (currentSelectData.pModelName === dataHubStore.data.modelName) {
             // 设置当前数据为项目数据
-            dataHubStore.setCurrentModel(dataHubStore.data);
+            dataHub2DStore.setCurrentSelectData(dataHubStore.data);
             // 返回项目后隐藏返回按钮、重置列表数据
             setReturnBtnOrList(dataHubStore.data);
         } else {
             for (let i = 0; i < dataHubStore.data.bidSectionList.length; i++) {
                 const item = dataHubStore.data.bidSectionList[i];
-                if (item.modelName === currentModel.pModelName) {
+                if (item.modelName === currentSelectData.pModelName) {
                     // 设置当前模型数据
-                    dataHubStore.setCurrentModel(item);
+                    dataHub2DStore.setCurrentSelectData(item);
                     // 设置模型列表数据，按钮状态
                     setReturnBtnOrList(item);
                 }
@@ -110,6 +111,13 @@ const DataHub2D = () => {
             zoom: 12
         });
         setView(viewObj);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            // 重置数据
+            dataHub2DStore.reset2DSetting();
+        };
     }, []);
 
     return <div className='ui_datahub2D_container'>

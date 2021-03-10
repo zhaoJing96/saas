@@ -5,7 +5,8 @@ import THREE from '@/common/three';
 import { Button } from 'antd';
 import { getCanvasIntersects } from '@/common/utils/three.js';
 import { LeftOutlined } from '@ant-design/icons';
-import dataHubStore from '@/common/store/datahub';
+import dataHubStore from '@/common/store/datahub'; // 主控台store
+import dataHub3DStore from '@/common/store/datahub/datahub3D'; // 3D主控台store
 let scene, camera, renderer, controls, composer, outlinePass;
 let isComposer = false; // 是否组合渲染，现实选中高光效果
 let delta = new THREE.Clock().getDelta();//getDelta()方法获得两帧的时间间隔
@@ -43,7 +44,7 @@ const DataHub3D = () => {
     function setGltfModel(model) {
         // 导入GlTF模型
         let gltfLoader = new THREE.GLTFLoader();
-        let modelArr = [...dataHubStore.modelData];
+        let modelArr = [...dataHub3DStore.modelData];
         gltfLoader.load(model.modelUrl, gltf => {
             let modelComposerArr = []; // 临时数组，储存标段作业面，用于高亮
             gltf.scene.traverse(obj => {
@@ -64,7 +65,7 @@ const DataHub3D = () => {
             // 设置网格模型对象、用于模型二次点击不解析加载模型
             if (gltf.scene.children[0].name) {
                 modelArr.push(gltf.scene);
-                dataHubStore.setModelData([...new Set(modelArr)]);
+                dataHub3DStore.setModelData([...new Set(modelArr)]);
             }
             scene.add(gltf.scene);
             // 判断模型加载中
@@ -78,7 +79,7 @@ const DataHub3D = () => {
             setLoadingModel(false);
         });
         // 设置当前模型对象
-        dataHubStore.setCurrentModel(model);
+        dataHub3DStore.setCurrentModel(model);
     }
     // 设置返回按钮、模型数据列表（是标段还是作业面）
     function setReturnBtnOrModelList(currentData) {
@@ -111,7 +112,7 @@ const DataHub3D = () => {
     function getChildModelSetComposer() {
         let composerModelArr = [];
         scene && scene.traverse((child) => {
-            if (child.name === dataHubStore.currentModel.modelName) {
+            if (child.name === dataHub3DStore.currentModel.modelName) {
                 for (let i = 0; i < child.children.length; i++) {
                     const ele = child.children[i];
                     if (ele.type === 'Mesh') {
@@ -126,7 +127,7 @@ const DataHub3D = () => {
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
         scene.traverse(function (child) {
-            if (child.name === dataHubStore.currentModel.modelName) {
+            if (child.name === dataHub3DStore.currentModel.modelName) {
                 // 设置当前模型对象
                 scene.remove(child.parent);
             }
@@ -140,16 +141,16 @@ const DataHub3D = () => {
         // 隐藏上一个模型
         visibleModel();
         // 判断模型是否已经加载过
-        const alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
+        const alreadyLoadedModel = [...dataHub3DStore.alreadyLoadedModel];
         if (alreadyLoadedModel.indexOf(value.modelName) !== -1) {
-            const model = [...dataHubStore.modelData];
+            const model = [...dataHub3DStore.modelData];
             for (let i = 0; i < model.length; i++) {
                 const item = model[i];
                 item.traverse(function (child) {
                     // 添加当前模型
                     if (child.name === value.modelName) {
                         // 设置当前模型对象
-                        dataHubStore.setCurrentModel(value);
+                        dataHub3DStore.setCurrentModel(value);
                         scene.add(child.parent);
                     }
                 });
@@ -157,7 +158,7 @@ const DataHub3D = () => {
         } else {
             // 未加载过，加载当前模型，设置模型初始值,存储模型
             alreadyLoadedModel.push(value.modelName);
-            dataHubStore.setAlreadyLoadedModel(alreadyLoadedModel);
+            dataHub3DStore.setAlreadyLoadedModel(alreadyLoadedModel);
             setGltfModel(value);
         }
         // 根据选中数据设置模型列表、返回按钮状态
@@ -168,8 +169,8 @@ const DataHub3D = () => {
 
     // 返回上一级
     function returnLast() {
-        const currentModel = { ...dataHubStore.currentModel };
-        const model = [...dataHubStore.modelData];
+        const currentModel = { ...dataHub3DStore.currentModel };
+        const model = [...dataHub3DStore.modelData];
         for (let i = 0; i < model.length; i++) {
             const item = model[i];
             item.traverse(function (child) {
@@ -186,7 +187,7 @@ const DataHub3D = () => {
         // 判断是上一级是项目还是标段
         if (currentModel.pModelName === dataHubStore.data.modelName) {
             // 设置当前模型数据为项目模型数据
-            dataHubStore.setCurrentModel(dataHubStore.data);
+            dataHub3DStore.setCurrentModel(dataHubStore.data);
             // 返回项目模型后隐藏返回按钮、重置模型数据
             setReturnBtnOrModelList(dataHubStore.data);
         } else {
@@ -194,7 +195,7 @@ const DataHub3D = () => {
                 const item = dataHubStore.data.bidSectionList[i];
                 if (item.modelName === currentModel.pModelName) {
                     // 设置当前模型数据
-                    dataHubStore.setCurrentModel(item);
+                    dataHub3DStore.setCurrentModel(item);
                     // 返回上级模型、重置模型列表数据
                     setReturnBtnOrModelList(item);
                 }
@@ -329,7 +330,7 @@ const DataHub3D = () => {
             setModelList([]);
             setComposerData([]);
             setLoadingModel(false);
-            dataHubStore.reset3DSetting();
+            dataHub3DStore.reset3DSetting();
         };
     }, []);
 
