@@ -125,9 +125,8 @@ const DataHub3D = () => {
     }
     // 隐藏模型, 隐藏前一个模型
     function visibleModel() {
-        const currentModel = { ...dataHubStore.currentModel };
         scene.traverse(function (child) {
-            if (child.name === currentModel.modelName) {
+            if (child.name === dataHubStore.currentModel.modelName) {
                 // 设置当前模型对象
                 scene.remove(child.parent);
             }
@@ -141,7 +140,7 @@ const DataHub3D = () => {
         // 隐藏上一个模型
         visibleModel();
         // 判断模型是否已经加载过
-        let alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
+        const alreadyLoadedModel = [...dataHubStore.alreadyLoadedModel];
         if (alreadyLoadedModel.indexOf(value.modelName) !== -1) {
             const model = [...dataHubStore.modelData];
             for (let i = 0; i < model.length; i++) {
@@ -204,7 +203,7 @@ const DataHub3D = () => {
         // 设置模型高亮数据
         getChildModelSetComposer();
     }
-    // 移入列表选中模型
+    // 移入列表选中模型,设置模型高亮
     function hoverSelectModel(model) {
         let objName = model.pModelName + '_' + model.modelName;
         // 获取当前选中模型对象
@@ -257,6 +256,7 @@ const DataHub3D = () => {
             renderer.setSize(width, height); // 设置渲染区域尺寸
         }, 500);
     }
+
     useEffect(() => {
         // 监听鼠标移动事件、设置高亮
         if (composerData) {
@@ -323,8 +323,7 @@ const DataHub3D = () => {
     }, []);
 
     useEffect(() => {
-        // 监听窗体变化
-        window.addEventListener('resize', onWindowResize, false);
+        
     }, []);
 
     useEffect(() => {
@@ -356,7 +355,8 @@ const DataHub3D = () => {
         renderer.shadowMap.enabled = true;
         // 挂载到DOM节点
         datahubBox.current.appendChild(renderer.domElement);
-
+        // 监听窗体变化s
+        window.addEventListener('resize', onWindowResize, false);
         // 监听鼠标事件
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         // 高亮设置
