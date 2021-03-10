@@ -76,11 +76,11 @@ class DataHubStore {
     @action setCurrentModel = (value) => {
         this.currentModel = value;
     }
-    // 存储已经加载过的模型，用于模型加载时，加载过的不在加载采用显隐方式展示
+    // 3D存储已经加载过的模型，用于模型加载时，加载过的不在加载采用显隐方式展示
     @action setAlreadyLoadedModel = (value) => {
         this.alreadyLoadedModel = value;
     }
-    // 设置模型数据
+    // 3D存储已经加载过的模型数据（Mesh），设置网格模型对象、用于模型二次点击不解析加载模型
     @action setModelData = (value) => {
         this.modelData = value;
     }
