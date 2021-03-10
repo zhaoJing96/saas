@@ -1,6 +1,5 @@
 // 2D主控台
 import React, { useEffect, useState } from 'react';
-// import { Button } from 'antd';
 import { Map, View } from 'ol';
 import * as Proj from 'ol/proj';
 import TileLayer from 'ol/layer/Tile'; // 图层
