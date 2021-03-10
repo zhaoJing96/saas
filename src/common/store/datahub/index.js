@@ -84,33 +84,11 @@ class DataHubStore {
     @action setModelData = (value) => {
         this.modelData = value;
     }
-    // 设置返回按钮、模型数据列表（是标段还是作业面）
-    @action setReturnBtnOrModelList(currentData) {
-        // 返回按钮展示
-        const data = this.data;
-        let lists = [];
-        if (currentData.pModelName) {
-            // setShowReturnBtn(true);
-            // 确认对比是处于标段模型还是作业面
-            if (currentData.pModelName === data.modelName) {
-                // 标段时，展示作业面列表，获取作业面列表
-                for (let i = 0; i < data.bidSectionList.length; i++) {
-                    const item = data.bidSectionList[i];
-                    if (currentData.modelName === item.modelName) {
-                        lists = item.workFaceList;
-                    }
-                }
-            } else {
-                // 作业面时，无下级模型列表
-                lists = [];
-            }
-        } else {
-            // 项目模型时，无返回按钮，展示标段列表
-            // setShowReturnBtn(false);
-            lists = data.bidSectionList;
-        }
-        // setModelList(lists);
-        return lists;
+    // 重置3D相关设置数据
+    @action reset3DSetting() {
+        this.modelData = [];
+        this.alreadyLoadedModel = [];
+        this.currentModel = null;
     }
 }
 let dataHubStore = new DataHubStore();

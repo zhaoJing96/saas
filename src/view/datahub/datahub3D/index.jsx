@@ -323,7 +323,14 @@ const DataHub3D = () => {
     }, []);
 
     useEffect(() => {
-        
+        // 重置页面数据
+        return () => {
+            setShowReturnBtn(false);
+            setModelList([]);
+            setComposerData([]);
+            setLoadingModel(false);
+            dataHubStore.reset3DSetting();
+        };
     }, []);
 
     useEffect(() => {
