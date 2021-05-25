@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 // 天空盒子环境贴图图片
 const skyZ1 = require('@/static/images/three/Sky_DayZ1.png');
 const skyZ2 = require('@/static/images/three/Sky_DayZ2.png');
@@ -270,33 +270,31 @@ function setModelOpacity(model, opacity) {
  * @param { 区域高度 } height
  * @param { 场景对象 } scene
  * @param { 摄像机对象} camera
+ * @param { 渲染回调} renderer
  */
-function threeJs_Composer(width, height, scene, camera, renderer) {
+function setModelComposer(width, height, scene, camera, renderer) {
     let composer = new EffectComposer(renderer);
     let renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
-    let selectedObjects = [];
-
     let outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
-    //---------可通过修改下方代码对特效进行调整---------------
-    outlinePass.edgeStrength = 5;//包围线浓度
-    outlinePass.edgeGlow = 1;//边缘线范围
+    outlinePass.visibleEdgeColor.set('#00ff00'); // 选中颜色
+    outlinePass.hiddenEdgeColor.set('#00FF00');//被遮挡的边界线颜色
+    outlinePass.edgeStrength = 1.3; // 强度
+    outlinePass.edgeGlow = 1.5; // 边缘明暗度
     outlinePass.edgeThickness = 3;//边缘线浓度
-    outlinePass.pulsePeriod = 2;//包围线闪烁频率 #00FF00 #FF4500
-    outlinePass.visibleEdgeColor.set('#00FF00');//包围线颜色 FF4500
-    outlinePass.hiddenEdgeColor.set('#00FF00');//被遮挡的边界线颜色 190a05
-    //---------------------------------------------------
+    outlinePass.pulsePeriod = 2;
+    outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
     composer.addPass(outlinePass);
-    let effectCopy = new ShaderPass(CopyShader);
+    composer.addPass(outlinePass);
+    //保持outputEncoding = sRGBEncoding
+    let effectCopy = new ShaderPass(GammaCorrectionShader);
     effectCopy.renderToScreen = true;
     composer.addPass(effectCopy);
+
     composer.selectedObjectEffect = function (objs) {
-        selectedObjects = [];
-        for (let i = 0; i < objs.length; i++) {
-            selectedObjects.push(objs[i]);
-        }
+        let selectedObjects = [];
+        selectedObjects.push(objs);
         outlinePass.selectedObjects = selectedObjects;
-        // isComposer = true;
     };
     return composer;
 }
@@ -309,5 +307,5 @@ export {
     setModelOpacity,
     getCanvasIntersects,
     getBodyCanvasIntersects,
-    threeJs_Composer
+    setModelComposer
 };

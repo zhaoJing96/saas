@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import THREE from '@/common/three';
 import { Button } from 'antd';
-import { getCanvasIntersects } from '@/common/utils/three.js';
+import { getCanvasIntersects, setModelComposer } from '@/common/utils/three.js';
 import { LeftOutlined } from '@ant-design/icons';
 import dataHubStore from '@/common/store/datahub'; // 主控台store
 import dataHub3DStore from '@/common/store/datahub/datahub3D'; // 3D主控台store
@@ -216,24 +216,6 @@ const DataHub3D = () => {
             isComposer = false;
         }
     }
-    // 设置模型高亮选中
-    function setComposer(width, height) {
-        // 设置高亮
-        composer = new THREE.EffectComposer(renderer); // 配置composer
-        let renderPass = new THREE.RenderPass(scene, camera); // 配置通道
-        composer.addPass(renderPass); // 将通道加入composer
-        outlinePass = new THREE.OutlinePass(new THREE.Vector2(width, height), scene, camera);
-        outlinePass.visibleEdgeColor.set('#00ff00'); // 选中颜色
-        outlinePass.edgeStrength = 1.3; // 强度
-        outlinePass.edgeGlow = 1.5; // 边缘明暗度
-        outlinePass.renderToScreen = true; // 设置这个参数的目的是马上将当前的内容输出
-        composer.addPass(outlinePass);
-        composer.selectedObjectEffect = function (objs) {
-            let selectedObjects = [];
-            selectedObjects.push(objs);
-            outlinePass.selectedObjects = selectedObjects;
-        };
-    }
     // 渲染函数
     function renderFn() {
         requestAnimationFrame(renderFn);
@@ -361,6 +343,10 @@ const DataHub3D = () => {
         renderer.setClearColor(0x000000, 0.5); // 设置颜色透明度
         // 首先渲染器开启阴影
         renderer.shadowMap.enabled = true;
+        // 修改渲染模式
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.textureEncoding = THREE.sRGBEncoding;
         // 挂载到DOM节点
         datahubBox.current.appendChild(renderer.domElement);
         // 监听窗体变化s
@@ -368,7 +354,7 @@ const DataHub3D = () => {
         // 监听鼠标事件
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         // 高亮设置
-        setComposer(width, height);
+        composer = setModelComposer(width, height, scene, camera, renderer);
         // 渲染
         renderFn();
     }, [dataHubStore.data]);
